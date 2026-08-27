@@ -51,7 +51,7 @@
 
 ### 1. Clone & Install
 ```bash
-git clone https://github.com/your-username/autofix-agent.git
+git clone https://github.com/Priyanshu123-coder/autofix-agent.git
 cd autofix-agent
 npm install
 ```
@@ -59,7 +59,6 @@ npm install
 ### 2. Configure Environment
 ```bash
 cp .env.example .env
-# Optional: Add your GITHUB_TOKEN or model provider keys
 ```
 
 ### 3. Run the Live Autonomous Remediation Demo
@@ -74,7 +73,7 @@ node dist/demo_runner.js
 *(Mandatory Submission Requirement under Rule 10)*
 
 ### 🔗 Merged Pull Request
-- **PR Link:** `https://github.com/your-username/autofix-agent/pull/1` *(Replace with your live PR link)*
+- **PR Link:** [https://github.com/Priyanshu123-coder/autofix-agent/pull/1](https://github.com/Priyanshu123-coder/autofix-agent/pull/1)
 
 ### 📝 Review Summary & Engineering Decisions:
 - **What Qodo Surfaced:** Qodo's `/agentic_review` identified an unhandled edge-case where the sandbox execution runner on Windows platforms could throw `ENOENT` if the node executable path wasn't explicitly resolved.
@@ -86,7 +85,7 @@ node dist/demo_runner.js
 - **Video Link:** `https://youtu.be/your-demo-video-link` *(Recorded following [`docs/DEMO_SCRIPT.md`](docs/DEMO_SCRIPT.md))*
 
 ## ✍️ Field Report Blog Post
-- **Article Link:** `https://dev.to/your-username/building-autofix-agent-trueforge` *(Written using [`docs/FIELD_REPORT.md`](docs/FIELD_REPORT.md))*
+- **Article Link:** `https://dev.to/Priyanshu123-coder/building-autofix-agent-trueforge` *(Written using [`docs/FIELD_REPORT.md`](docs/FIELD_REPORT.md))*
 
 ---
 
