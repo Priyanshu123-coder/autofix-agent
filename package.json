@@ -5,9 +5,9 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
-    "start": "node dist/index.js",
-    "dev": "ts-node src/index.ts",
-    "demo:fix": "ts-node src/demo_runner.ts"
+    "start": "node dist/demo_runner.js",
+    "dashboard": "node dist/server.js",
+    "demo:fix": "node dist/demo_runner.js"
   },
   "keywords": [
     "trueforge",
@@ -17,18 +17,16 @@
     "ci-cd",
     "auto-repair"
   ],
-  "author": "",
+  "author": "Priyanshu123-coder",
   "license": "MIT",
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.4",
     "dotenv": "^16.4.7",
     "octokit": "^4.0.2",
-    "zod": "^3.24.1",
-    "chalk": "^4.1.2"
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
-    "ts-node": "^10.9.2",
     "typescript": "^5.7.2"
   }
 }

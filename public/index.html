@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AutoFix-Agent Dashboard | TrueForge & Qodo</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <style>
+    @keyframes pulse-glow {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.8; transform: scale(1.02); }
+    }
+    .active-step {
+      border-color: #3b82f6 !important;
+      background: rgba(59, 130, 246, 0.15) !important;
+      animation: pulse-glow 2s infinite;
+    }
+    .completed-step {
+      border-color: #10b981 !important;
+      background: rgba(16, 185, 129, 0.1) !important;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen">
+  <!-- Top Navigation -->
+  <header class="border-b border-slate-800 bg-slate-900/60 backdrop-blur sticky top-0 z-50 px-6 py-4 flex items-center justify-between">
+    <div class="flex items-center space-x-3">
+      <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/20">
+        <i class="fa-solid fa-robot text-xl text-white"></i>
+      </div>
+      <div>
+        <h1 class="text-xl font-bold bg-gradient-to-r from-blue-400 to-indigo-300 bg-clip-text text-transparent">AutoFix-Agent</h1>
+        <p class="text-xs text-slate-400">Autonomous CI/CD Failure Fixer • TrueForge Harness • Qodo AI Review</p>
+      </div>
+    </div>
+    <div class="flex items-center space-x-4">
+      <span class="px-3 py-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-full text-xs font-semibold flex items-center gap-2">
+        <span class="h-2 w-2 rounded-full bg-emerald-400 animate-ping"></span>
+        Harness Active
+      </span>
+      <a href="https://github.com/Priyanshu123-coder/autofix-agent" target="_blank" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-sm transition flex items-center gap-2 border border-slate-700">
+        <i class="fa-brands fa-github"></i> Repository
+      </a>
+    </div>
+  </header>
+
+  <main class="max-w-7xl mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <!-- Left Column: Pipeline States & Controls -->
+    <div class="lg:col-span-5 space-y-6">
+      <!-- Control Card -->
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-xl backdrop-blur">
+        <h2 class="text-lg font-semibold text-slate-200 mb-2 flex items-center gap-2">
+          <i class="fa-solid fa-bolt text-yellow-400"></i> CI/CD Pipeline Simulator
+        </h2>
+        <p class="text-xs text-slate-400 mb-5 leading-relaxed">
+          Simulate a broken GitHub Actions workflow run to trigger TrueForge autonomous diagnosis, sandboxing, and Qodo review.
+        </p>
+
+        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 mb-5 flex items-center justify-between">
+          <div>
+            <div class="text-xs text-slate-400 font-mono">Trigger Event:</div>
+            <div class="text-sm font-semibold text-rose-400 flex items-center gap-2">
+              <i class="fa-solid fa-circle-xmark"></i> CI Run #4829 (Jest Fail)
+            </div>
+          </div>
+          <span class="text-xs bg-rose-500/10 text-rose-300 border border-rose-500/20 px-2.5 py-1 rounded-md font-mono">2 Failing Tests</span>
+        </div>
+
+        <button id="startBtn" onclick="startRemediation()" class="w-full py-3.5 px-6 rounded-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-lg shadow-blue-500/25 transition transform active:scale-95 flex items-center justify-center gap-2">
+          <i class="fa-solid fa-play"></i> Start Autonomous Repair
+        </button>
+      </div>
+
+      <!-- State Machine Stepper -->
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-xl backdrop-blur">
+        <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-4 flex items-center justify-between">
+          <span>TrueForge Runtime States</span>
+          <span id="stateBadge" class="text-xs text-blue-400 font-mono bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">IDLE</span>
+        </h3>
+
+        <div class="space-y-3">
+          <div id="step-1" class="p-3.5 rounded-xl border border-slate-800 bg-slate-950/60 transition flex items-center gap-3">
+            <div class="h-7 w-7 rounded-lg bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-300 step-icon">1</div>
+            <div>
+              <div class="text-sm font-semibold text-slate-200">Log Ingestion & Error Extraction</div>
+              <div class="text-xs text-slate-400">Parse stack traces & identify failing assertions</div>
+            </div>
+          </div>
+
+          <div id="step-2" class="p-3.5 rounded-xl border border-slate-800 bg-slate-950/60 transition flex items-center gap-3">
+            <div class="h-7 w-7 rounded-lg bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-300 step-icon">2</div>
+            <div>
+              <div class="text-sm font-semibold text-slate-200">TrueForge Sandbox Reproduction</div>
+              <div class="text-xs text-slate-400">Isolated test execution to confirm local failure</div>
+            </div>
+          </div>
+
+          <div id="step-3" class="p-3.5 rounded-xl border border-slate-800 bg-slate-950/60 transition flex items-center gap-3">
+            <div class="h-7 w-7 rounded-lg bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-300 step-icon">3</div>
+            <div>
+              <div class="text-sm font-semibold text-slate-200">LLM Patch Synthesis</div>
+              <div class="text-xs text-slate-400">Synthesize minimal, robust bug fix for calculator.js</div>
+            </div>
+          </div>
+
+          <div id="step-4" class="p-3.5 rounded-xl border border-slate-800 bg-slate-950/60 transition flex items-center gap-3">
+            <div class="h-7 w-7 rounded-lg bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-300 step-icon">4</div>
+            <div>
+              <div class="text-sm font-semibold text-slate-200">Sandbox Verification & Regression Check</div>
+              <div class="text-xs text-slate-400">Re-run unit tests inside sandbox (100% pass)</div>
+            </div>
+          </div>
+
+          <div id="step-5" class="p-3.5 rounded-xl border border-slate-800 bg-slate-950/60 transition flex items-center gap-3">
+            <div class="h-7 w-7 rounded-lg bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-300 step-icon">5</div>
+            <div>
+              <div class="text-sm font-semibold text-slate-200">Human-in-the-Loop Governance Gate</div>
+              <div class="text-xs text-slate-400">Pause for human sign-off before git push</div>
+            </div>
+          </div>
+
+          <div id="step-6" class="p-3.5 rounded-xl border border-slate-800 bg-slate-950/60 transition flex items-center gap-3">
+            <div class="h-7 w-7 rounded-lg bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-300 step-icon">6</div>
+            <div>
+              <div class="text-sm font-semibold text-slate-200">GitHub PR & Qodo Review Trigger</div>
+              <div class="text-xs text-slate-400">Open branch & trigger /agentic_review</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Live Terminal & Code Diff -->
+    <div class="lg:col-span-7 space-y-6">
+      <!-- Live Agent Execution Terminal -->
+      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl shadow-xl overflow-hidden backdrop-blur">
+        <div class="bg-slate-950/80 px-4 py-3 border-b border-slate-800 flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <div class="h-3 w-3 rounded-full bg-rose-500/80"></div>
+            <div class="h-3 w-3 rounded-full bg-yellow-500/80"></div>
+            <div class="h-3 w-3 rounded-full bg-emerald-500/80"></div>
+            <span class="text-xs font-mono text-slate-400 ml-2">trueforge-agent-runtime.log</span>
+          </div>
+          <span id="spinner" class="hidden text-xs text-blue-400 flex items-center gap-1.5">
+            <i class="fa-solid fa-circle-notch fa-spin"></i> Running Harness...
+          </span>
+        </div>
+        <div id="terminal" class="p-5 font-mono text-xs text-slate-300 h-64 overflow-y-auto space-y-1 bg-slate-950/95 leading-relaxed">
+          <div class="text-slate-500">[System] AutoFix-Agent dashboard ready. Click "Start Autonomous Repair" to begin.</div>
+        </div>
+      </div>
+
+      <!-- Human-in-the-Loop Approval Modal / Card -->
+      <div id="approvalCard" class="hidden bg-gradient-to-r from-indigo-950/90 to-purple-950/90 border border-indigo-500/40 rounded-2xl p-6 shadow-2xl animate-bounce-once">
+        <div class="flex items-start justify-between mb-4">
+          <div class="flex items-center gap-3">
+            <div class="h-10 w-10 rounded-xl bg-purple-600/30 border border-purple-400/30 flex items-center justify-center text-purple-300">
+              <i class="fa-solid fa-hand text-lg"></i>
+            </div>
+            <div>
+              <h3 class="text-base font-bold text-white">TrueForge Human-in-the-Loop Approval Required</h3>
+              <p class="text-xs text-purple-200/70">Verified patch tested in sandbox with 0 regressions. Approve remote git push?</p>
+            </div>
+          </div>
+          <span class="px-2.5 py-1 bg-purple-500/20 border border-purple-400/30 text-purple-300 text-xs rounded-md font-mono">GOVERNANCE</span>
+        </div>
+
+        <div class="flex items-center gap-3 justify-end mt-4">
+          <button onclick="rejectApproval()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-semibold transition">
+            Reject Action
+          </button>
+          <button onclick="grantApproval()" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold transition shadow-lg shadow-emerald-600/30 flex items-center gap-2">
+            <i class="fa-solid fa-check"></i> Approve & Push PR
+          </button>
+        </div>
+      </div>
+
+      <!-- Live Code Diff Viewer -->
+      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-xl backdrop-blur">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-code-compare text-blue-400"></i>
+            <h3 class="text-sm font-semibold text-slate-200">Autonomously Synthesized Patch (<code class="text-blue-400 font-mono text-xs">src/calculator.js</code>)</h3>
+          </div>
+          <span id="diffBadge" class="text-xs text-slate-500 font-mono">Waiting for patch...</span>
+        </div>
+
+        <div class="bg-slate-950 rounded-xl border border-slate-800 p-4 font-mono text-xs overflow-x-auto space-y-1">
+          <div class="text-slate-500">// src/calculator.js patch view</div>
+          <div class="text-slate-400"> class Calculator {</div>
+          <div class="text-slate-400">   divide(a, b) {</div>
+          <div id="diffOld" class="text-rose-400 bg-rose-950/40 px-2 py-0.5 rounded border border-rose-900/50">-    return a * b; // BUG: multiplied instead of divided, no zero check</div>
+          <div id="diffNew" class="text-emerald-400 bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-900/50 hidden">+    if (b === 0) throw new Error("Cannot divide by zero");<br>+    return a / b;</div>
+          <div class="text-slate-400">   }</div>
+          <div class="text-slate-400"> }</div>
+        </div>
+      </div>
+
+      <!-- PR & Qodo Review Output Card -->
+      <div id="prResultCard" class="hidden bg-slate-900/80 border border-emerald-500/30 rounded-2xl p-6 shadow-xl backdrop-blur">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-3">
+            <div class="h-8 w-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+              <i class="fa-solid fa-code-pull-request"></i>
+            </div>
+            <div>
+              <h3 class="text-sm font-bold text-white">Pull Request #1 Verified by Qodo</h3>
+              <a href="https://github.com/Priyanshu123-coder/autofix-agent/pull/1" target="_blank" class="text-xs text-blue-400 hover:underline">
+                https://github.com/Priyanshu123-coder/autofix-agent/pull/1 <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
+              </a>
+            </div>
+          </div>
+          <span class="px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs rounded-full font-semibold">MERGED & APPROVED</span>
+        </div>
+        <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800 text-xs text-slate-300 font-mono space-y-1">
+          <div class="text-purple-400">> @qodo-merge-bot /agentic_review</div>
+          <div class="text-emerald-400">✓ Code review completed: 0 high issues, 100% test pass rate in sandbox.</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    function log(msg, color = 'text-slate-300') {
+      const term = document.getElementById('terminal');
+      const time = new Date().toLocaleTimeString();
+      term.innerHTML += `<div class="${color}"><span class="text-slate-600">[${time}]</span> ${msg}</div>`;
+      term.scrollTop = term.scrollHeight;
+    }
+
+    function setStep(num, status) {
+      const el = document.getElementById(`step-${num}`);
+      const icon = el.querySelector('.step-icon');
+      if (status === 'active') {
+        el.className = 'p-3.5 rounded-xl border active-step flex items-center gap-3';
+        icon.className = 'h-7 w-7 rounded-lg bg-blue-600 flex items-center justify-center text-xs font-bold text-white';
+      } else if (status === 'completed') {
+        el.className = 'p-3.5 rounded-xl border completed-step flex items-center gap-3';
+        icon.className = 'h-7 w-7 rounded-lg bg-emerald-600 flex items-center justify-center text-xs font-bold text-white';
+        icon.innerHTML = '<i class="fa-solid fa-check"></i>';
+      }
+    }
+
+    let isApproved = false;
+
+    async function startRemediation() {
+      const btn = document.getElementById('startBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Running AutoFix Agent...';
+      document.getElementById('spinner').classList.remove('hidden');
+      document.getElementById('terminal').innerHTML = '';
+
+      log('🚀 [TrueForge Harness] Initializing session...', 'text-blue-400 font-bold');
+      document.getElementById('stateBadge').innerText = 'ANALYZING';
+      setStep(1, 'active');
+      await new Promise(r => setTimeout(r, 1200));
+
+      log('[Step 1] Ingesting CI Failure: FAIL test/calculator.test.js (Division operations mismatch)', 'text-white');
+      setStep(1, 'completed');
+
+      // Step 2
+      document.getElementById('stateBadge').innerText = 'REPRODUCING';
+      setStep(2, 'active');
+      log('[Step 2] Reproducing failure in TrueForge sandbox (exit code: 1)...', 'text-yellow-400');
+      await new Promise(r => setTimeout(r, 1500));
+      setStep(2, 'completed');
+
+      // Step 3
+      document.getElementById('stateBadge').innerText = 'PATCHING';
+      setStep(3, 'active');
+      log('[Step 3] LLM Synthesizing zero-denominator guard and division fix in src/calculator.js...', 'text-blue-400');
+      await new Promise(r => setTimeout(r, 1500));
+      document.getElementById('diffNew').classList.remove('hidden');
+      document.getElementById('diffBadge').innerText = 'Patch Synthesized';
+      document.getElementById('diffBadge').className = 'text-xs text-emerald-400 font-mono';
+      setStep(3, 'completed');
+
+      // Step 4
+      document.getElementById('stateBadge').innerText = 'VERIFYING';
+      setStep(4, 'active');
+      log('[Step 4] Re-running unit tests inside TrueForge Sandbox...', 'text-cyan-400');
+      await new Promise(r => setTimeout(r, 1200));
+      log('✅ [Verification Passed] 5 of 5 unit tests passing in sandbox with zero regressions!', 'text-emerald-400 font-bold');
+      setStep(4, 'completed');
+
+      // Step 5: Human-in-the-loop
+      document.getElementById('stateBadge').innerText = 'AWAITING_APPROVAL';
+      setStep(5, 'active');
+      log('🔔 [TrueForge Governance Gate] Pausing execution for operator sign-off before remote push...', 'text-purple-400 font-bold');
+      document.getElementById('approvalCard').classList.remove('hidden');
+    }
+
+    function grantApproval() {
+      document.getElementById('approvalCard').classList.add('hidden');
+      setStep(5, 'completed');
+      proceedToPR();
+    }
+
+    function rejectApproval() {
+      document.getElementById('approvalCard').classList.add('hidden');
+      log('❌ [Governance Gate] Operator rejected PR creation.', 'text-rose-400 font-bold');
+      document.getElementById('startBtn').disabled = false;
+      document.getElementById('startBtn').innerHTML = '<i class="fa-solid fa-rotate-right"></i> Restart Repair';
+    }
+
+    async function proceedToPR() {
+      document.getElementById('stateBadge').innerText = 'COMPLETED';
+      setStep(6, 'active');
+      log('🎉 [Git Manager] Creating branch fix/autofix-ci-run-4829 and pushing PR...', 'text-emerald-400');
+      await new Promise(r => setTimeout(r, 1000));
+      log('🚀 Triggering Qodo Review Commands: /agentic_review, /describe, /improve', 'text-purple-400');
+      setStep(6, 'completed');
+      document.getElementById('prResultCard').classList.remove('hidden');
+      document.getElementById('spinner').classList.add('hidden');
+      document.getElementById('startBtn').disabled = false;
+      document.getElementById('startBtn').innerHTML = '<i class="fa-solid fa-check"></i> Remediation Complete';
+      log('✨ [AutoFix-Agent] Autonomous Remediation Successfully Completed!', 'text-emerald-300 font-bold');
+    }
+  </script>
+</body>
+</html>
