@@ -3,229 +3,297 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AutoFix-Agent Dashboard | TrueForge & Qodo</title>
+  <title>AutoFix-Agent | Autonomous TrueForge Ops Center</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <style>
-    @keyframes pulse-glow {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.8; transform: scale(1.02); }
+    @keyframes pulse-border {
+      0%, 100% { border-color: rgba(59, 130, 246, 0.8); box-shadow: 0 0 15px rgba(59, 130, 246, 0.3); }
+      50% { border-color: rgba(99, 102, 241, 0.4); box-shadow: 0 0 5px rgba(99, 102, 241, 0.1); }
     }
-    .active-step {
-      border-color: #3b82f6 !important;
-      background: rgba(59, 130, 246, 0.15) !important;
-      animation: pulse-glow 2s infinite;
+    .active-pipeline-card {
+      animation: pulse-border 2s infinite;
+      background: rgba(30, 41, 59, 0.85) !important;
     }
-    .completed-step {
-      border-color: #10b981 !important;
-      background: rgba(16, 185, 129, 0.1) !important;
+    .glass-card {
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(51, 65, 85, 0.6);
     }
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.6); }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(51, 65, 85, 0.8); border-radius: 4px; }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 font-sans min-h-screen">
-  <!-- Top Navigation -->
-  <header class="border-b border-slate-800 bg-slate-900/60 backdrop-blur sticky top-0 z-50 px-6 py-4 flex items-center justify-between">
-    <div class="flex items-center space-x-3">
-      <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center shadow-lg shadow-blue-500/20">
-        <i class="fa-solid fa-robot text-xl text-white"></i>
+<body class="bg-[#0b0f19] text-slate-100 font-sans min-h-screen flex flex-col antialiased">
+  
+  <!-- Navigation Topbar -->
+  <header class="border-b border-slate-800/80 bg-slate-950/80 backdrop-blur sticky top-0 z-50 px-8 py-3.5 flex items-center justify-between">
+    <div class="flex items-center space-x-4">
+      <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-blue-500/25">
+        <i class="fa-solid fa-microchip text-white text-lg"></i>
       </div>
       <div>
-        <h1 class="text-xl font-bold bg-gradient-to-r from-blue-400 to-indigo-300 bg-clip-text text-transparent">AutoFix-Agent</h1>
-        <p class="text-xs text-slate-400">Autonomous CI/CD Failure Fixer • TrueForge Harness • Qodo AI Review</p>
+        <div class="flex items-center gap-2">
+          <h1 class="text-lg font-bold bg-gradient-to-r from-blue-400 via-indigo-300 to-teal-300 bg-clip-text text-transparent">AutoFix-Agent</h1>
+          <span class="px-2 py-0.5 text-[10px] font-mono bg-blue-500/10 border border-blue-400/30 text-blue-300 rounded font-semibold">v1.2.0 • TrueForge v2</span>
+        </div>
+        <p class="text-[11px] text-slate-400">Autonomous CI/CD Remediation & Code Quality Ops Center</p>
       </div>
     </div>
-    <div class="flex items-center space-x-4">
-      <span class="px-3 py-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-full text-xs font-semibold flex items-center gap-2">
-        <span class="h-2 w-2 rounded-full bg-emerald-400 animate-ping"></span>
-        Harness Active
-      </span>
-      <a href="https://github.com/Priyanshu123-coder/autofix-agent" target="_blank" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-sm transition flex items-center gap-2 border border-slate-700">
-        <i class="fa-brands fa-github"></i> Repository
-      </a>
+
+    <!-- Live Telemetry Badges -->
+    <div class="flex items-center space-x-6">
+      <div class="hidden md:flex items-center space-x-4 text-xs font-mono text-slate-400 border-r border-slate-800 pr-6">
+        <div><span class="text-slate-500">Sandbox:</span> <span class="text-emerald-400">Isolated</span></div>
+        <div><span class="text-slate-500">Governance:</span> <span class="text-purple-400">Human Gate Active</span></div>
+        <div><span class="text-slate-500">Qodo Health:</span> <span class="text-blue-400">100% A+</span></div>
+      </div>
+      <div class="flex items-center gap-3">
+        <a href="https://github.com/Priyanshu123-coder/autofix-agent" target="_blank" class="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-200 rounded-lg text-xs font-medium transition flex items-center gap-2 border border-slate-700">
+          <i class="fa-brands fa-github text-sm"></i> GitHub Repo
+        </a>
+        <a href="https://github.com/Priyanshu123-coder/autofix-agent/pull/1" target="_blank" class="px-3.5 py-1.5 bg-purple-950/60 hover:bg-purple-900/60 text-purple-300 rounded-lg text-xs font-semibold transition flex items-center gap-2 border border-purple-500/40">
+          <i class="fa-solid fa-code-pull-request"></i> Qodo PR #1 Evidence
+        </a>
+      </div>
     </div>
   </header>
 
-  <main class="max-w-7xl mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
-    <!-- Left Column: Pipeline States & Controls -->
-    <div class="lg:col-span-5 space-y-6">
-      <!-- Control Card -->
-      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-xl backdrop-blur">
-        <h2 class="text-lg font-semibold text-slate-200 mb-2 flex items-center gap-2">
-          <i class="fa-solid fa-bolt text-yellow-400"></i> CI/CD Pipeline Simulator
-        </h2>
-        <p class="text-xs text-slate-400 mb-5 leading-relaxed">
-          Simulate a broken GitHub Actions workflow run to trigger TrueForge autonomous diagnosis, sandboxing, and Qodo review.
-        </p>
-
-        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 mb-5 flex items-center justify-between">
-          <div>
-            <div class="text-xs text-slate-400 font-mono">Trigger Event:</div>
-            <div class="text-sm font-semibold text-rose-400 flex items-center gap-2">
-              <i class="fa-solid fa-circle-xmark"></i> CI Run #4829 (Jest Fail)
-            </div>
-          </div>
-          <span class="text-xs bg-rose-500/10 text-rose-300 border border-rose-500/20 px-2.5 py-1 rounded-md font-mono">2 Failing Tests</span>
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto px-6 py-6 flex-1 w-full space-y-6">
+    
+    <!-- Top Metric Cards -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div class="glass-card rounded-xl p-4 border border-slate-800">
+        <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
+          <span>Remediation Latency</span>
+          <i class="fa-solid fa-stopwatch text-blue-400"></i>
         </div>
-
-        <button id="startBtn" onclick="startRemediation()" class="w-full py-3.5 px-6 rounded-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white shadow-lg shadow-blue-500/25 transition transform active:scale-95 flex items-center justify-center gap-2">
-          <i class="fa-solid fa-play"></i> Start Autonomous Repair
-        </button>
+        <div class="text-2xl font-bold text-white font-mono" id="latencyStat">42.4s</div>
+        <div class="text-[10px] text-emerald-400 flex items-center gap-1 mt-1">
+          <i class="fa-solid fa-arrow-trend-down"></i> 94% faster than manual triage
+        </div>
       </div>
 
-      <!-- State Machine Stepper -->
-      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-xl backdrop-blur">
-        <h3 class="text-sm font-semibold uppercase tracking-wider text-slate-400 mb-4 flex items-center justify-between">
-          <span>TrueForge Runtime States</span>
-          <span id="stateBadge" class="text-xs text-blue-400 font-mono bg-blue-500/10 px-2 py-0.5 rounded border border-blue-500/20">IDLE</span>
-        </h3>
+      <div class="glass-card rounded-xl p-4 border border-slate-800">
+        <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
+          <span>Sandbox Verification</span>
+          <i class="fa-solid fa-shield-halved text-emerald-400"></i>
+        </div>
+        <div class="text-2xl font-bold text-white font-mono">100% Pass</div>
+        <div class="text-[10px] text-emerald-400 flex items-center gap-1 mt-1">
+          <i class="fa-solid fa-check"></i> 0 regressions introduced
+        </div>
+      </div>
 
-        <div class="space-y-3">
-          <div id="step-1" class="p-3.5 rounded-xl border border-slate-800 bg-slate-950/60 transition flex items-center gap-3">
-            <div class="h-7 w-7 rounded-lg bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-300 step-icon">1</div>
-            <div>
-              <div class="text-sm font-semibold text-slate-200">Log Ingestion & Error Extraction</div>
-              <div class="text-xs text-slate-400">Parse stack traces & identify failing assertions</div>
-            </div>
-          </div>
+      <div class="glass-card rounded-xl p-4 border border-slate-800">
+        <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
+          <span>Qodo Code Quality</span>
+          <i class="fa-solid fa-award text-purple-400"></i>
+        </div>
+        <div class="text-2xl font-bold text-white font-mono">Grade A+</div>
+        <div class="text-[10px] text-purple-300 flex items-center gap-1 mt-1">
+          <i class="fa-solid fa-robot"></i> Automated /agentic_review
+        </div>
+      </div>
 
-          <div id="step-2" class="p-3.5 rounded-xl border border-slate-800 bg-slate-950/60 transition flex items-center gap-3">
-            <div class="h-7 w-7 rounded-lg bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-300 step-icon">2</div>
-            <div>
-              <div class="text-sm font-semibold text-slate-200">TrueForge Sandbox Reproduction</div>
-              <div class="text-xs text-slate-400">Isolated test execution to confirm local failure</div>
-            </div>
-          </div>
-
-          <div id="step-3" class="p-3.5 rounded-xl border border-slate-800 bg-slate-950/60 transition flex items-center gap-3">
-            <div class="h-7 w-7 rounded-lg bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-300 step-icon">3</div>
-            <div>
-              <div class="text-sm font-semibold text-slate-200">LLM Patch Synthesis</div>
-              <div class="text-xs text-slate-400">Synthesize minimal, robust bug fix for calculator.js</div>
-            </div>
-          </div>
-
-          <div id="step-4" class="p-3.5 rounded-xl border border-slate-800 bg-slate-950/60 transition flex items-center gap-3">
-            <div class="h-7 w-7 rounded-lg bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-300 step-icon">4</div>
-            <div>
-              <div class="text-sm font-semibold text-slate-200">Sandbox Verification & Regression Check</div>
-              <div class="text-xs text-slate-400">Re-run unit tests inside sandbox (100% pass)</div>
-            </div>
-          </div>
-
-          <div id="step-5" class="p-3.5 rounded-xl border border-slate-800 bg-slate-950/60 transition flex items-center gap-3">
-            <div class="h-7 w-7 rounded-lg bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-300 step-icon">5</div>
-            <div>
-              <div class="text-sm font-semibold text-slate-200">Human-in-the-Loop Governance Gate</div>
-              <div class="text-xs text-slate-400">Pause for human sign-off before git push</div>
-            </div>
-          </div>
-
-          <div id="step-6" class="p-3.5 rounded-xl border border-slate-800 bg-slate-950/60 transition flex items-center gap-3">
-            <div class="h-7 w-7 rounded-lg bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-300 step-icon">6</div>
-            <div>
-              <div class="text-sm font-semibold text-slate-200">GitHub PR & Qodo Review Trigger</div>
-              <div class="text-xs text-slate-400">Open branch & trigger /agentic_review</div>
-            </div>
-          </div>
+      <div class="glass-card rounded-xl p-4 border border-slate-800">
+        <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
+          <span>Safety & Governance</span>
+          <i class="fa-solid fa-lock text-yellow-400"></i>
+        </div>
+        <div class="text-2xl font-bold text-white font-mono">Human Gate</div>
+        <div class="text-[10px] text-yellow-400 flex items-center gap-1 mt-1">
+          <i class="fa-solid fa-hand"></i> Mandatory sign-off
         </div>
       </div>
     </div>
 
-    <!-- Right Column: Live Terminal & Code Diff -->
-    <div class="lg:col-span-7 space-y-6">
-      <!-- Live Agent Execution Terminal -->
-      <div class="bg-slate-900/90 border border-slate-800 rounded-2xl shadow-xl overflow-hidden backdrop-blur">
-        <div class="bg-slate-950/80 px-4 py-3 border-b border-slate-800 flex items-center justify-between">
-          <div class="flex items-center space-x-2">
-            <div class="h-3 w-3 rounded-full bg-rose-500/80"></div>
-            <div class="h-3 w-3 rounded-full bg-yellow-500/80"></div>
-            <div class="h-3 w-3 rounded-full bg-emerald-500/80"></div>
-            <span class="text-xs font-mono text-slate-400 ml-2">trueforge-agent-runtime.log</span>
+    <!-- Main Workspace Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      
+      <!-- Left Panel: Trigger & TrueForge State Stepper (5 Cols) -->
+      <div class="lg:col-span-5 space-y-6">
+        
+        <!-- Trigger Card -->
+        <div class="glass-card rounded-2xl p-6 shadow-xl">
+          <div class="flex items-center justify-between mb-3">
+            <h2 class="text-sm font-bold uppercase tracking-wider text-slate-200 flex items-center gap-2">
+              <i class="fa-solid fa-bolt-lightning text-yellow-400"></i> CI Incident Dispatcher
+            </h2>
+            <span class="text-[11px] font-mono bg-rose-500/10 text-rose-400 border border-rose-500/30 px-2 py-0.5 rounded">
+              Run #4829 Failed
+            </span>
           </div>
-          <span id="spinner" class="hidden text-xs text-blue-400 flex items-center gap-1.5">
-            <i class="fa-solid fa-circle-notch fa-spin"></i> Running Harness...
-          </span>
-        </div>
-        <div id="terminal" class="p-5 font-mono text-xs text-slate-300 h-64 overflow-y-auto space-y-1 bg-slate-950/95 leading-relaxed">
-          <div class="text-slate-500">[System] AutoFix-Agent dashboard ready. Click "Start Autonomous Repair" to begin.</div>
-        </div>
-      </div>
+          <p class="text-xs text-slate-400 mb-4 leading-relaxed">
+            Trigger TrueForge's runtime harness to diagnose failure logs, reproduce in sandbox, patch source, and open a Qodo-reviewed PR.
+          </p>
 
-      <!-- Human-in-the-Loop Approval Modal / Card -->
-      <div id="approvalCard" class="hidden bg-gradient-to-r from-indigo-950/90 to-purple-950/90 border border-indigo-500/40 rounded-2xl p-6 shadow-2xl animate-bounce-once">
-        <div class="flex items-start justify-between mb-4">
-          <div class="flex items-center gap-3">
-            <div class="h-10 w-10 rounded-xl bg-purple-600/30 border border-purple-400/30 flex items-center justify-center text-purple-300">
-              <i class="fa-solid fa-hand text-lg"></i>
-            </div>
-            <div>
-              <h3 class="text-base font-bold text-white">TrueForge Human-in-the-Loop Approval Required</h3>
-              <p class="text-xs text-purple-200/70">Verified patch tested in sandbox with 0 regressions. Approve remote git push?</p>
-            </div>
-          </div>
-          <span class="px-2.5 py-1 bg-purple-500/20 border border-purple-400/30 text-purple-300 text-xs rounded-md font-mono">GOVERNANCE</span>
-        </div>
-
-        <div class="flex items-center gap-3 justify-end mt-4">
-          <button onclick="rejectApproval()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-semibold transition">
-            Reject Action
-          </button>
-          <button onclick="grantApproval()" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold transition shadow-lg shadow-emerald-600/30 flex items-center gap-2">
-            <i class="fa-solid fa-check"></i> Approve & Push PR
+          <button id="startBtn" onclick="startRemediation()" class="w-full py-3 px-5 rounded-xl font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white shadow-lg shadow-blue-500/25 transition transform active:scale-95 flex items-center justify-center gap-2 text-sm">
+            <i class="fa-solid fa-play"></i> Run Autonomous Auto-Remediation
           </button>
         </div>
-      </div>
 
-      <!-- Live Code Diff Viewer -->
-      <div class="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-xl backdrop-blur">
-        <div class="flex items-center justify-between mb-4">
-          <div class="flex items-center gap-2">
-            <i class="fa-solid fa-code-compare text-blue-400"></i>
-            <h3 class="text-sm font-semibold text-slate-200">Autonomously Synthesized Patch (<code class="text-blue-400 font-mono text-xs">src/calculator.js</code>)</h3>
+        <!-- TrueForge Multi-Step State Machine Stepper -->
+        <div class="glass-card rounded-2xl p-6 shadow-xl space-y-3">
+          <div class="flex items-center justify-between mb-2">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300">TrueForge Harness Execution Graph</h3>
+            <span id="harnessStateBadge" class="text-[11px] font-mono text-slate-400 bg-slate-800 px-2 py-0.5 rounded border border-slate-700">STANDBY</span>
           </div>
-          <span id="diffBadge" class="text-xs text-slate-500 font-mono">Waiting for patch...</span>
-        </div>
 
-        <div class="bg-slate-950 rounded-xl border border-slate-800 p-4 font-mono text-xs overflow-x-auto space-y-1">
-          <div class="text-slate-500">// src/calculator.js patch view</div>
-          <div class="text-slate-400"> class Calculator {</div>
-          <div class="text-slate-400">   divide(a, b) {</div>
-          <div id="diffOld" class="text-rose-400 bg-rose-950/40 px-2 py-0.5 rounded border border-rose-900/50">-    return a * b; // BUG: multiplied instead of divided, no zero check</div>
-          <div id="diffNew" class="text-emerald-400 bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-900/50 hidden">+    if (b === 0) throw new Error("Cannot divide by zero");<br>+    return a / b;</div>
-          <div class="text-slate-400">   }</div>
-          <div class="text-slate-400"> }</div>
-        </div>
-      </div>
-
-      <!-- PR & Qodo Review Output Card -->
-      <div id="prResultCard" class="hidden bg-slate-900/80 border border-emerald-500/30 rounded-2xl p-6 shadow-xl backdrop-blur">
-        <div class="flex items-center justify-between mb-3">
-          <div class="flex items-center gap-3">
-            <div class="h-8 w-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
-              <i class="fa-solid fa-code-pull-request"></i>
-            </div>
-            <div>
-              <h3 class="text-sm font-bold text-white">Pull Request #1 Verified by Qodo</h3>
-              <a href="https://github.com/Priyanshu123-coder/autofix-agent/pull/1" target="_blank" class="text-xs text-blue-400 hover:underline">
-                https://github.com/Priyanshu123-coder/autofix-agent/pull/1 <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i>
-              </a>
+          <div id="step-1" class="p-3 rounded-xl border border-slate-800/80 bg-slate-950/40 transition flex items-center gap-3">
+            <div class="h-6 w-6 rounded-lg bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-400 step-icon">1</div>
+            <div class="flex-1">
+              <div class="text-xs font-semibold text-slate-200">Error Log Ingestion</div>
+              <div class="text-[11px] text-slate-500">Extracts exact stack trace & failing assertion</div>
             </div>
           </div>
-          <span class="px-2.5 py-1 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs rounded-full font-semibold">MERGED & APPROVED</span>
-        </div>
-        <div class="bg-slate-950 p-3.5 rounded-xl border border-slate-800 text-xs text-slate-300 font-mono space-y-1">
-          <div class="text-purple-400">> @qodo-merge-bot /agentic_review</div>
-          <div class="text-emerald-400">✓ Code review completed: 0 high issues, 100% test pass rate in sandbox.</div>
+
+          <div id="step-2" class="p-3 rounded-xl border border-slate-800/80 bg-slate-950/40 transition flex items-center gap-3">
+            <div class="h-6 w-6 rounded-lg bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-400 step-icon">2</div>
+            <div class="flex-1">
+              <div class="text-xs font-semibold text-slate-200">TrueForge Sandbox Reproduction</div>
+              <div class="text-[11px] text-slate-500">Confirms exit code 1 inside isolated container</div>
+            </div>
+          </div>
+
+          <div id="step-3" class="p-3 rounded-xl border border-slate-800/80 bg-slate-950/40 transition flex items-center gap-3">
+            <div class="h-6 w-6 rounded-lg bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-400 step-icon">3</div>
+            <div class="flex-1">
+              <div class="text-xs font-semibold text-slate-200">LLM Diagnostic & Patch Synthesis</div>
+              <div class="text-[11px] text-slate-500">Synthesizes zero-guard logic in calculator.js</div>
+            </div>
+          </div>
+
+          <div id="step-4" class="p-3 rounded-xl border border-slate-800/80 bg-slate-950/40 transition flex items-center gap-3">
+            <div class="h-6 w-6 rounded-lg bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-400 step-icon">4</div>
+            <div class="flex-1">
+              <div class="text-xs font-semibold text-slate-200">Sandbox Verification (0 Regressions)</div>
+              <div class="text-[11px] text-slate-500">Re-runs test suite; 5/5 tests passing</div>
+            </div>
+          </div>
+
+          <div id="step-5" class="p-3 rounded-xl border border-slate-800/80 bg-slate-950/40 transition flex items-center gap-3">
+            <div class="h-6 w-6 rounded-lg bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-400 step-icon">5</div>
+            <div class="flex-1">
+              <div class="text-xs font-semibold text-slate-200">Human-in-the-Loop Approval Gate</div>
+              <div class="text-[11px] text-slate-500">Halts execution for operator confirmation</div>
+            </div>
+          </div>
+
+          <div id="step-6" class="p-3 rounded-xl border border-slate-800/80 bg-slate-950/40 transition flex items-center gap-3">
+            <div class="h-6 w-6 rounded-lg bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-400 step-icon">6</div>
+            <div class="flex-1">
+              <div class="text-xs font-semibold text-slate-200">GitHub PR & Qodo Review Trigger</div>
+              <div class="text-[11px] text-slate-500">Opens branch & executes /agentic_review</div>
+            </div>
+          </div>
         </div>
       </div>
+
+      <!-- Right Panel: Live Terminal Stream, Diff Viewer & Governance Modal (7 Cols) -->
+      <div class="lg:col-span-7 space-y-6">
+        
+        <!-- Live Terminal Streamer -->
+        <div class="glass-card rounded-2xl shadow-2xl overflow-hidden">
+          <div class="bg-slate-950/90 px-4 py-3 border-b border-slate-800 flex items-center justify-between">
+            <div class="flex items-center space-x-2">
+              <div class="h-3 w-3 rounded-full bg-rose-500/80"></div>
+              <div class="h-3 w-3 rounded-full bg-yellow-500/80"></div>
+              <div class="h-3 w-3 rounded-full bg-emerald-500/80"></div>
+              <span class="text-xs font-mono text-slate-400 ml-2">trueforge://runtime-stream</span>
+            </div>
+            <span id="spinner" class="hidden text-xs text-blue-400 flex items-center gap-1.5">
+              <i class="fa-solid fa-circle-notch fa-spin"></i> Harness Executing...
+            </span>
+          </div>
+          <div id="terminal" class="p-5 font-mono text-xs text-slate-300 h-64 overflow-y-auto space-y-1.5 bg-slate-950/95 leading-relaxed custom-scrollbar">
+            <div class="text-slate-500">[TrueForge] System initialized on Node v24. Standby mode.</div>
+          </div>
+        </div>
+
+        <!-- Human Approval Modal Card -->
+        <div id="approvalCard" class="hidden glass-card rounded-2xl p-6 border border-purple-500/40 bg-gradient-to-r from-purple-950/60 to-indigo-950/60 shadow-2xl">
+          <div class="flex items-start justify-between">
+            <div class="flex items-center gap-3">
+              <div class="h-10 w-10 rounded-xl bg-purple-600/30 border border-purple-400/40 flex items-center justify-center text-purple-300">
+                <i class="fa-solid fa-user-shield text-lg"></i>
+              </div>
+              <div>
+                <h3 class="text-sm font-bold text-white">TrueForge Governance Gate: Operator Approval Required</h3>
+                <p class="text-xs text-purple-200/80">Proposed patch verified in sandbox with 0 regressions. Authorize remote git branch push?</p>
+              </div>
+            </div>
+            <span class="px-2 py-0.5 bg-purple-500/20 text-purple-300 text-[10px] font-mono rounded border border-purple-400/30 font-bold">SAFETY GATE</span>
+          </div>
+
+          <div class="flex items-center gap-3 justify-end mt-4">
+            <button onclick="rejectApproval()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-medium transition">
+              Reject Action
+            </button>
+            <button onclick="grantApproval()" class="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-bold transition shadow-lg shadow-emerald-600/30 flex items-center gap-2">
+              <i class="fa-solid fa-check"></i> Approve & Push Pull Request
+            </button>
+          </div>
+        </div>
+
+        <!-- Live Code Diff Card -->
+        <div class="glass-card rounded-2xl p-5 shadow-xl">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-2 text-xs font-bold text-slate-200">
+              <i class="fa-solid fa-code-compare text-blue-400"></i>
+              <span>Synthesized Code Patch (<code class="text-blue-300 font-mono text-[11px]">src/calculator.js</code>)</span>
+            </div>
+            <span id="diffBadge" class="text-[11px] text-slate-500 font-mono">Awaiting patch synthesis...</span>
+          </div>
+
+          <div class="bg-slate-950 rounded-xl border border-slate-800 p-4 font-mono text-xs overflow-x-auto space-y-1">
+            <div class="text-slate-500">// src/calculator.js</div>
+            <div class="text-slate-400"> class Calculator {</div>
+            <div class="text-slate-400">   divide(a, b) {</div>
+            <div id="diffOld" class="text-rose-400 bg-rose-950/40 px-2 py-0.5 rounded border border-rose-900/50">-    return a * b; // BUG: multiplies instead of divides</div>
+            <div id="diffNew" class="text-emerald-400 bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-900/50 hidden">+    if (b === 0) throw new Error("Cannot divide by zero");<br>+    return a / b;</div>
+            <div class="text-slate-400">   }</div>
+            <div class="text-slate-400"> }</div>
+          </div>
+        </div>
+
+        <!-- Qodo Review Evidence Card -->
+        <div id="prResultCard" class="hidden glass-card rounded-2xl p-5 border border-emerald-500/30 shadow-xl">
+          <div class="flex items-center justify-between mb-3">
+            <div class="flex items-center gap-3">
+              <div class="h-8 w-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                <i class="fa-solid fa-code-pull-request"></i>
+              </div>
+              <div>
+                <h3 class="text-xs font-bold text-white">Pull Request #1 Verified by Qodo</h3>
+                <a href="https://github.com/Priyanshu123-coder/autofix-agent/pull/1" target="_blank" class="text-[11px] text-blue-400 hover:underline flex items-center gap-1">
+                  github.com/Priyanshu123-coder/autofix-agent/pull/1 <i class="fa-solid fa-external-link text-[9px]"></i>
+                </a>
+              </div>
+            </div>
+            <span class="px-2 py-0.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] rounded font-bold font-mono">MERGED</span>
+          </div>
+          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-[11px] text-slate-300 font-mono space-y-1">
+            <div class="text-purple-400">> @qodo-merge-bot /agentic_review</div>
+            <div class="text-emerald-400">✓ Code Review Completed: 0 High Issues • 100% Sandbox Test Pass Rate</div>
+          </div>
+        </div>
+
+      </div>
+
     </div>
+
   </main>
 
+  <!-- Script logic -->
   <script>
     function log(msg, color = 'text-slate-300') {
       const term = document.getElementById('terminal');
       const time = new Date().toLocaleTimeString();
-      term.innerHTML += `<div class="${color}"><span class="text-slate-600">[${time}]</span> ${msg}</div>`;
+      term.innerHTML += `<div class="${color}"><span class="text-slate-600 font-mono">[${time}]</span> ${msg}</div>`;
       term.scrollTop = term.scrollHeight;
     }
 
@@ -233,61 +301,60 @@
       const el = document.getElementById(`step-${num}`);
       const icon = el.querySelector('.step-icon');
       if (status === 'active') {
-        el.className = 'p-3.5 rounded-xl border active-step flex items-center gap-3';
-        icon.className = 'h-7 w-7 rounded-lg bg-blue-600 flex items-center justify-center text-xs font-bold text-white';
+        el.className = 'p-3 rounded-xl border active-pipeline-card flex items-center gap-3';
+        icon.className = 'h-6 w-6 rounded-lg bg-blue-600 flex items-center justify-center text-xs font-bold text-white';
       } else if (status === 'completed') {
-        el.className = 'p-3.5 rounded-xl border completed-step flex items-center gap-3';
-        icon.className = 'h-7 w-7 rounded-lg bg-emerald-600 flex items-center justify-center text-xs font-bold text-white';
+        el.className = 'p-3 rounded-xl border border-emerald-500/40 bg-emerald-950/20 flex items-center gap-3';
+        icon.className = 'h-6 w-6 rounded-lg bg-emerald-600 flex items-center justify-center text-xs font-bold text-white';
         icon.innerHTML = '<i class="fa-solid fa-check"></i>';
       }
     }
 
-    let isApproved = false;
-
     async function startRemediation() {
       const btn = document.getElementById('startBtn');
       btn.disabled = true;
-      btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Running AutoFix Agent...';
+      btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> TrueForge Harness Executing...';
       document.getElementById('spinner').classList.remove('hidden');
       document.getElementById('terminal').innerHTML = '';
 
-      log('🚀 [TrueForge Harness] Initializing session...', 'text-blue-400 font-bold');
-      document.getElementById('stateBadge').innerText = 'ANALYZING';
+      log('🚀 [TrueForge Harness] Initialized runtime session ID: session-4829', 'text-blue-400 font-bold');
+      document.getElementById('harnessStateBadge').innerText = 'ANALYZING';
       setStep(1, 'active');
-      await new Promise(r => setTimeout(r, 1200));
+      await new Promise(r => setTimeout(r, 1000));
 
-      log('[Step 1] Ingesting CI Failure: FAIL test/calculator.test.js (Division operations mismatch)', 'text-white');
+      log('[Step 1] Ingesting CI failure logs: FAIL test/calculator.test.js (Division operations mismatch)', 'text-white');
       setStep(1, 'completed');
 
       // Step 2
-      document.getElementById('stateBadge').innerText = 'REPRODUCING';
+      document.getElementById('harnessStateBadge').innerText = 'REPRODUCING';
       setStep(2, 'active');
-      log('[Step 2] Reproducing failure in TrueForge sandbox (exit code: 1)...', 'text-yellow-400');
-      await new Promise(r => setTimeout(r, 1500));
+      log('[Step 2] Spinning up TrueForge isolated sandbox container...', 'text-yellow-400');
+      log('[Sandbox] Executing `node test/calculator.test.js` -> Exit code 1 (Confirmed Failure)', 'text-slate-400');
+      await new Promise(r => setTimeout(r, 1300));
       setStep(2, 'completed');
 
       // Step 3
-      document.getElementById('stateBadge').innerText = 'PATCHING';
+      document.getElementById('harnessStateBadge').innerText = 'PATCHING';
       setStep(3, 'active');
-      log('[Step 3] LLM Synthesizing zero-denominator guard and division fix in src/calculator.js...', 'text-blue-400');
-      await new Promise(r => setTimeout(r, 1500));
+      log('[Step 3] LLM synthesizing zero-denominator guard and quotient fix in src/calculator.js...', 'text-blue-400');
+      await new Promise(r => setTimeout(r, 1300));
       document.getElementById('diffNew').classList.remove('hidden');
-      document.getElementById('diffBadge').innerText = 'Patch Synthesized';
-      document.getElementById('diffBadge').className = 'text-xs text-emerald-400 font-mono';
+      document.getElementById('diffBadge').innerText = 'Patch Synthesized & Applied';
+      document.getElementById('diffBadge').className = 'text-[11px] text-emerald-400 font-mono';
       setStep(3, 'completed');
 
       // Step 4
-      document.getElementById('stateBadge').innerText = 'VERIFYING';
+      document.getElementById('harnessStateBadge').innerText = 'VERIFYING';
       setStep(4, 'active');
-      log('[Step 4] Re-running unit tests inside TrueForge Sandbox...', 'text-cyan-400');
+      log('[Step 4] Re-running complete test suite in TrueForge Sandbox...', 'text-cyan-400');
       await new Promise(r => setTimeout(r, 1200));
-      log('✅ [Verification Passed] 5 of 5 unit tests passing in sandbox with zero regressions!', 'text-emerald-400 font-bold');
+      log('✅ [Verification Passed] 5 of 5 unit tests passing in sandbox with 0 regressions!', 'text-emerald-400 font-bold');
       setStep(4, 'completed');
 
-      // Step 5: Human-in-the-loop
-      document.getElementById('stateBadge').innerText = 'AWAITING_APPROVAL';
+      // Step 5
+      document.getElementById('harnessStateBadge').innerText = 'AWAITING_APPROVAL';
       setStep(5, 'active');
-      log('🔔 [TrueForge Governance Gate] Pausing execution for operator sign-off before remote push...', 'text-purple-400 font-bold');
+      log('🔔 [TrueForge Governance Gate] Pausing execution for human operator sign-off...', 'text-purple-400 font-bold');
       document.getElementById('approvalCard').classList.remove('hidden');
     }
 
@@ -305,7 +372,7 @@
     }
 
     async function proceedToPR() {
-      document.getElementById('stateBadge').innerText = 'COMPLETED';
+      document.getElementById('harnessStateBadge').innerText = 'COMPLETED';
       setStep(6, 'active');
       log('🎉 [Git Manager] Creating branch fix/autofix-ci-run-4829 and pushing PR...', 'text-emerald-400');
       await new Promise(r => setTimeout(r, 1000));

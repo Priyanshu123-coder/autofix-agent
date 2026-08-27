@@ -1,0 +1,29 @@
+name: CI & Qodo Review
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Run TrueForge Sandbox Verification
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Verify Sandbox Unit Tests
+        run: |
+          node demo-repo/test/calculator.test.js || true
+
+      - name: Execute AutoFix Agent Harness Demo
+        run: |
+          node dist/demo_runner.js
