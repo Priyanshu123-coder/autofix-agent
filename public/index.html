@@ -3,140 +3,165 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AutoFix-Agent | TrueForge & Qodo Agentic Ops Platform</title>
+  <title>AutoFix-Agent | TrueForge & Qodo Agentic Studio</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <style>
     @keyframes pulse-glow {
-      0%, 100% { border-color: rgba(59, 130, 246, 0.9); box-shadow: 0 0 25px rgba(59, 130, 246, 0.4); }
-      50% { border-color: rgba(147, 51, 234, 0.5); box-shadow: 0 0 10px rgba(147, 51, 234, 0.2); }
+      0%, 100% { border-color: rgba(59, 130, 246, 0.9); box-shadow: 0 0 25px rgba(59, 130, 246, 0.45); }
+      50% { border-color: rgba(168, 85, 247, 0.6); box-shadow: 0 0 15px rgba(168, 85, 247, 0.25); }
+    }
+    @keyframes scanline {
+      0% { transform: translateY(-100%); }
+      100% { transform: translateY(1000%); }
     }
     .active-pipeline {
-      animation: pulse-glow 2s infinite;
-      background: rgba(30, 41, 59, 0.9) !important;
+      animation: pulse-glow 2s infinite ease-in-out;
+      background: rgba(30, 41, 59, 0.95) !important;
     }
     .glass-panel {
-      background: rgba(15, 23, 42, 0.78);
-      backdrop-filter: blur(16px);
-      border: 1px solid rgba(51, 65, 85, 0.6);
+      background: rgba(13, 20, 36, 0.75);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(51, 65, 85, 0.65);
     }
     .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
-    .custom-scrollbar::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.5); }
+    .custom-scrollbar::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.4); }
     .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(71, 85, 105, 0.8); border-radius: 4px; }
+    .neon-text-blue { text-shadow: 0 0 12px rgba(59, 130, 246, 0.6); }
+    .neon-text-purple { text-shadow: 0 0 12px rgba(168, 85, 247, 0.6); }
+    .tab-active {
+      border-bottom: 2px solid #3b82f6;
+      color: #93c5fd !important;
+      background: rgba(59, 130, 246, 0.08);
+    }
   </style>
 </head>
-<body class="bg-[#080c14] text-slate-100 font-sans min-h-screen flex flex-col antialiased selection:bg-blue-500 selection:text-white">
+<body class="bg-[#050811] text-slate-100 font-sans min-h-screen flex flex-col antialiased selection:bg-blue-600 selection:text-white">
 
-  <!-- Top Enterprise Header -->
+  <!-- Top Enterprise Navigation -->
   <header class="border-b border-slate-800/80 bg-slate-950/80 backdrop-blur sticky top-0 z-50 px-6 lg:px-10 py-3.5 flex items-center justify-between">
     <div class="flex items-center space-x-4">
-      <div class="h-10 w-10 rounded-xl bg-gradient-to-tr from-blue-600 via-indigo-500 to-cyan-400 flex items-center justify-center shadow-lg shadow-blue-500/25 ring-1 ring-white/20">
-        <i class="fa-solid fa-microchip text-white text-lg"></i>
+      <div class="h-11 w-11 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-500 to-cyan-400 flex items-center justify-center shadow-xl shadow-blue-500/30 ring-1 ring-white/25">
+        <i class="fa-solid fa-microchip text-white text-xl"></i>
       </div>
       <div>
-        <div class="flex items-center gap-2">
-          <h1 class="text-lg font-extrabold bg-gradient-to-r from-blue-400 via-indigo-300 to-teal-300 bg-clip-text text-transparent">AutoFix-Agent</h1>
-          <span class="px-2 py-0.5 text-[10px] font-mono bg-blue-500/10 border border-blue-400/30 text-blue-300 rounded-full font-semibold">TrueForge v2 Core</span>
-          <span class="px-2 py-0.5 text-[10px] font-mono bg-purple-500/10 border border-purple-400/30 text-purple-300 rounded-full font-semibold">Qodo Verified</span>
+        <div class="flex items-center gap-2.5">
+          <h1 class="text-lg font-black tracking-tight bg-gradient-to-r from-blue-400 via-indigo-200 to-teal-300 bg-clip-text text-transparent">AutoFix-Agent</h1>
+          <span class="px-2.5 py-0.5 text-[10px] font-mono bg-blue-500/15 border border-blue-400/40 text-blue-300 rounded-full font-bold">TrueForge v2 Core</span>
+          <span class="px-2.5 py-0.5 text-[10px] font-mono bg-purple-500/15 border border-purple-400/40 text-purple-300 rounded-full font-bold">Qodo Verified</span>
         </div>
-        <p class="text-[11px] text-slate-400">Autonomous CI/CD Failure Auto-Remediation & Governance Platform</p>
+        <p class="text-[11px] text-slate-400 font-medium">Autonomous CI/CD Failure Auto-Remediation & Governance Studio</p>
       </div>
     </div>
 
-    <div class="flex items-center space-x-4">
-      <!-- Live Status Capsule -->
-      <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono">
-        <span class="h-2 w-2 rounded-full bg-emerald-400 animate-pulse"></span>
-        Harness Loop: Online
-      </div>
+    <!-- Navigation Tabs -->
+    <nav class="hidden md:flex items-center space-x-1 border border-slate-800 rounded-xl p-1 bg-slate-900/60 text-xs font-semibold text-slate-400">
+      <button onclick="switchTab('studio')" id="tabBtn-studio" class="px-3.5 py-1.5 rounded-lg transition tab-active flex items-center gap-2">
+        <i class="fa-solid fa-play"></i> Remediation Studio
+      </button>
+      <button onclick="switchTab('subagents')" id="tabBtn-subagents" class="px-3.5 py-1.5 rounded-lg transition hover:text-slate-200 flex items-center gap-2">
+        <i class="fa-solid fa-network-wired"></i> Subagent Mesh
+      </button>
+      <button onclick="switchTab('mcp')" id="tabBtn-mcp" class="px-3.5 py-1.5 rounded-lg transition hover:text-slate-200 flex items-center gap-2">
+        <i class="fa-solid fa-plug"></i> MCP Tools
+      </button>
+      <button onclick="switchTab('qodo')" id="tabBtn-qodo" class="px-3.5 py-1.5 rounded-lg transition hover:text-slate-200 flex items-center gap-2">
+        <i class="fa-solid fa-award"></i> Qodo Health
+      </button>
+    </nav>
+
+    <!-- Quick External Links -->
+    <div class="flex items-center space-x-3">
+      <button onclick="toggleAudio()" id="audioBtn" class="px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-400 hover:text-slate-200 transition" title="Toggle Sound Effects">
+        <i class="fa-solid fa-volume-high" id="audioIcon"></i>
+      </button>
       <a href="https://github.com/Priyanshu123-coder/autofix-agent" target="_blank" class="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-200 rounded-xl text-xs font-semibold transition flex items-center gap-2 border border-slate-700 shadow-sm">
-        <i class="fa-brands fa-github text-sm"></i> GitHub
+        <i class="fa-brands fa-github text-sm"></i> Repo
       </a>
       <a href="https://github.com/Priyanshu123-coder/autofix-agent/pull/1" target="_blank" class="px-3.5 py-1.5 bg-gradient-to-r from-purple-900/60 to-indigo-900/60 hover:from-purple-800/60 hover:to-indigo-800/60 text-purple-200 rounded-xl text-xs font-bold transition flex items-center gap-2 border border-purple-500/30 shadow-lg shadow-purple-900/20">
-        <i class="fa-solid fa-code-pull-request"></i> Qodo PR #1
+        <i class="fa-solid fa-code-pull-request"></i> PR #1 Review
       </a>
     </div>
   </header>
 
-  <!-- Workspace Container -->
-  <main class="max-w-[1550px] mx-auto px-6 py-6 flex-1 w-full space-y-6">
-    
-    <!-- Real-time Telemetry Bar -->
-    <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
-      <div class="glass-panel rounded-2xl p-4">
-        <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
-          <span>Active CI Run</span>
-          <i class="fa-solid fa-bolt text-yellow-400"></i>
-        </div>
-        <div class="text-xl font-extrabold text-white font-mono">#4829</div>
-        <div class="text-[10px] text-rose-400 mt-1 font-mono">FAIL: Jest Assert 20 !== 5</div>
+  <!-- Telemetry Overview Ribbons -->
+  <section class="max-w-[1600px] mx-auto px-6 pt-6 w-full grid grid-cols-2 sm:grid-cols-5 gap-4">
+    <div class="glass-panel rounded-2xl p-4">
+      <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
+        <span>Incident Target</span>
+        <i class="fa-solid fa-bolt text-yellow-400"></i>
       </div>
-
-      <div class="glass-panel rounded-2xl p-4">
-        <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
-          <span>Remediation Speed</span>
-          <i class="fa-solid fa-gauge-high text-cyan-400"></i>
-        </div>
-        <div class="text-xl font-extrabold text-white font-mono">38.2s</div>
-        <div class="text-[10px] text-emerald-400 mt-1">96% faster than manual debug</div>
-      </div>
-
-      <div class="glass-panel rounded-2xl p-4">
-        <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
-          <span>TrueForge Sandbox</span>
-          <i class="fa-solid fa-cube text-blue-400"></i>
-        </div>
-        <div class="text-xl font-extrabold text-white font-mono">Isolated</div>
-        <div class="text-[10px] text-blue-300 mt-1">Zero host-system side effects</div>
-      </div>
-
-      <div class="glass-panel rounded-2xl p-4">
-        <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
-          <span>Safety & Governance</span>
-          <i class="fa-solid fa-hand text-purple-400"></i>
-        </div>
-        <div class="text-xl font-extrabold text-white font-mono">Enforced</div>
-        <div class="text-[10px] text-purple-300 mt-1">Human approval gate active</div>
-      </div>
-
-      <div class="glass-panel rounded-2xl p-4 col-span-2 md:col-span-1">
-        <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
-          <span>Qodo Review Score</span>
-          <i class="fa-solid fa-shield-check text-emerald-400"></i>
-        </div>
-        <div class="text-xl font-extrabold text-emerald-400 font-mono">100% Passed</div>
-        <div class="text-[10px] text-slate-400 mt-1">0 high severity vulnerabilities</div>
-      </div>
+      <div class="text-xl font-black text-white font-mono">CI Run #4829</div>
+      <div class="text-[10px] text-rose-400 mt-1 font-mono">FAIL: Jest Assert 20 !== 5</div>
     </div>
 
-    <!-- 3-Column Cockpit Layout -->
+    <div class="glass-panel rounded-2xl p-4">
+      <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
+        <span>Remediation MTTR</span>
+        <i class="fa-solid fa-gauge-high text-cyan-400"></i>
+      </div>
+      <div class="text-xl font-black text-white font-mono">38.2s</div>
+      <div class="text-[10px] text-emerald-400 mt-1">96% faster than manual debug</div>
+    </div>
+
+    <div class="glass-panel rounded-2xl p-4">
+      <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
+        <span>TrueForge Sandbox</span>
+        <i class="fa-solid fa-cube text-blue-400"></i>
+      </div>
+      <div class="text-xl font-black text-white font-mono">Isolated</div>
+      <div class="text-[10px] text-blue-300 mt-1">Zero host system side effects</div>
+    </div>
+
+    <div class="glass-panel rounded-2xl p-4">
+      <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
+        <span>Safety & Governance</span>
+        <i class="fa-solid fa-shield-halved text-purple-400"></i>
+      </div>
+      <div class="text-xl font-black text-white font-mono">Enforced</div>
+      <div class="text-[10px] text-purple-300 mt-1">Human approval gate active</div>
+    </div>
+
+    <div class="glass-panel rounded-2xl p-4 col-span-2 sm:col-span-1">
+      <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
+        <span>Qodo Quality Score</span>
+        <i class="fa-solid fa-award text-emerald-400"></i>
+      </div>
+      <div class="text-xl font-black text-emerald-400 font-mono">Grade A+</div>
+      <div class="text-[10px] text-slate-400 mt-1">100% Tests • 0 High Vulnerabilities</div>
+    </div>
+  </section>
+
+  <!-- Tab 1: Studio View -->
+  <main id="view-studio" class="max-w-[1600px] mx-auto px-6 py-6 flex-1 w-full space-y-6">
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
       
-      <!-- Col 1: Orchestration & Stepper (4 Cols) -->
+      <!-- Left Panel: Trigger & Execution Stepper (4 Cols) -->
       <div class="lg:col-span-4 space-y-6">
         
-        <!-- Interactive Trigger Card -->
+        <!-- Incident Simulator Card -->
         <div class="glass-panel rounded-2xl p-6 shadow-xl relative overflow-hidden">
-          <div class="absolute -right-10 -bottom-10 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl"></div>
+          <div class="absolute -right-8 -bottom-8 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl"></div>
           <div class="flex items-center justify-between mb-3">
-            <h2 class="text-sm font-bold uppercase tracking-wider text-slate-200 flex items-center gap-2">
-              <i class="fa-solid fa-terminal text-blue-400"></i> Incident Controller
+            <h2 class="text-xs font-bold uppercase tracking-wider text-slate-200 flex items-center gap-2">
+              <i class="fa-solid fa-terminal text-blue-400"></i> Incident Dispatcher
             </h2>
-            <span class="text-[10px] font-mono bg-rose-500/10 text-rose-300 border border-rose-500/30 px-2 py-0.5 rounded font-bold">
+            <span class="text-[10px] font-mono bg-rose-500/15 text-rose-300 border border-rose-500/30 px-2 py-0.5 rounded font-bold">
               FAIL DETECTED
             </span>
           </div>
-          <p class="text-xs text-slate-400 mb-5 leading-relaxed">
-            Simulate an end-to-end incident: Ingest CI failure logs $\rightarrow$ Reproduce in TrueForge Sandbox $\rightarrow$ Synthesize Patch $\rightarrow$ Require Human Approval $\rightarrow$ Dispatch Qodo PR.
+          <p class="text-xs text-slate-400 mb-4 leading-relaxed">
+            Execute the TrueForge multi-agent loop: Ingest CI logs $\rightarrow$ Reproduce in Sandbox $\rightarrow$ Synthesize Patch $\rightarrow$ Halt at Governance Gate $\rightarrow$ Dispatch Qodo PR.
           </p>
 
-          <button id="startBtn" onclick="startRemediation()" class="w-full py-3.5 px-6 rounded-xl font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white shadow-xl shadow-blue-500/25 transition transform active:scale-95 flex items-center justify-center gap-2.5 text-sm cursor-pointer">
-            <i class="fa-solid fa-play"></i> Trigger Autonomous Repair
+          <button id="startBtn" onclick="startRemediation()" class="w-full py-3.5 px-6 rounded-xl font-extrabold bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white shadow-xl shadow-blue-500/25 transition transform active:scale-95 flex items-center justify-center gap-2.5 text-sm cursor-pointer">
+            <i class="fa-solid fa-play"></i> Run Autonomous Auto-Remediation
           </button>
         </div>
 
-        <!-- TrueForge Multi-Step State Machine Stepper -->
+        <!-- Multi-Step State Stepper -->
         <div class="glass-panel rounded-2xl p-6 shadow-xl space-y-3">
           <div class="flex items-center justify-between mb-2">
             <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300">TrueForge Harness Execution Graph</h3>
@@ -155,7 +180,7 @@
             <div class="h-6 w-6 rounded-lg bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-400 step-icon font-mono">2</div>
             <div class="flex-1">
               <div class="text-xs font-semibold text-slate-200">Sandbox Reproduction</div>
-              <div class="text-[11px] text-slate-500">Confirms test failure in isolated environment</div>
+              <div class="text-[11px] text-slate-500">Confirms test failure in isolated container</div>
             </div>
           </div>
 
@@ -193,7 +218,7 @@
         </div>
       </div>
 
-      <!-- Col 2: Live Code Diff & Terminal Stream (8 Cols) -->
+      <!-- Right Panel: Live Logs, Diff Viewer & Governance Modal (8 Cols) -->
       <div class="lg:col-span-8 space-y-6">
         
         <!-- Live Terminal Streamer -->
@@ -210,12 +235,12 @@
             </span>
           </div>
           <div id="terminal" class="p-5 font-mono text-xs text-slate-300 h-64 overflow-y-auto space-y-1.5 bg-slate-950/95 leading-relaxed custom-scrollbar">
-            <div class="text-slate-500">[TrueForge] System initialized on Node v24. Standby mode.</div>
+            <div class="text-slate-500">[TrueForge] System initialized on Node v24. Ready for auto-remediation.</div>
           </div>
         </div>
 
         <!-- Human-in-the-Loop Governance Modal -->
-        <div id="approvalCard" class="hidden glass-panel rounded-2xl p-6 border border-purple-500/40 bg-gradient-to-r from-purple-950/70 via-indigo-950/60 to-slate-950/70 shadow-2xl">
+        <div id="approvalCard" class="hidden glass-panel rounded-2xl p-6 border border-purple-500/50 bg-gradient-to-r from-purple-950/80 via-indigo-950/70 to-slate-950/80 shadow-2xl">
           <div class="flex items-start justify-between">
             <div class="flex items-center gap-3.5">
               <div class="h-11 w-11 rounded-xl bg-purple-600/30 border border-purple-400/40 flex items-center justify-center text-purple-300 shadow-lg">
@@ -285,10 +310,164 @@
       </div>
 
     </div>
+  </main>
 
+  <!-- Tab 2: Subagent Mesh View -->
+  <main id="view-subagents" class="hidden max-w-[1600px] mx-auto px-6 py-6 flex-1 w-full space-y-6">
+    <div class="glass-panel rounded-2xl p-6">
+      <h2 class="text-base font-bold text-white mb-2 flex items-center gap-2">
+        <i class="fa-solid fa-network-wired text-blue-400"></i> TrueForge Subagent Mesh Architecture
+      </h2>
+      <p class="text-xs text-slate-400 mb-6">Visual topology of autonomous subagents orchestrated by the TrueForge agent harness.</p>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-5 space-y-3">
+          <div class="flex items-center gap-3">
+            <div class="h-8 w-8 rounded-lg bg-blue-600/20 text-blue-400 flex items-center justify-center font-bold">1</div>
+            <div>
+              <h3 class="text-sm font-bold text-slate-200">Diagnostic Subagent</h3>
+              <p class="text-[10px] text-slate-500 font-mono">src/agent/subagents.ts</p>
+            </div>
+          </div>
+          <p class="text-xs text-slate-400">Specializes in AST parsing, failure log ingestion, and root-cause localization.</p>
+          <span class="inline-block px-2 py-0.5 text-[10px] bg-blue-500/10 text-blue-400 rounded border border-blue-500/20 font-mono">Role: Log Ingest & Triage</span>
+        </div>
+
+        <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-5 space-y-3">
+          <div class="flex items-center gap-3">
+            <div class="h-8 w-8 rounded-lg bg-emerald-600/20 text-emerald-400 flex items-center justify-center font-bold">2</div>
+            <div>
+              <h3 class="text-sm font-bold text-slate-200">Verification Subagent</h3>
+              <p class="text-[10px] text-slate-500 font-mono">src/agent/subagents.ts</p>
+            </div>
+          </div>
+          <p class="text-xs text-slate-400">Runs multi-pass regression testing in isolated sandbox containers before git actions.</p>
+          <span class="inline-block px-2 py-0.5 text-[10px] bg-emerald-500/10 text-emerald-400 rounded border border-emerald-500/20 font-mono">Role: Sandbox Isolation</span>
+        </div>
+
+        <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-5 space-y-3">
+          <div class="flex items-center gap-3">
+            <div class="h-8 w-8 rounded-lg bg-purple-600/20 text-purple-400 flex items-center justify-center font-bold">3</div>
+            <div>
+              <h3 class="text-sm font-bold text-slate-200">Qodo Dispatch Subagent</h3>
+              <p class="text-[10px] text-slate-500 font-mono">src/github/pr_manager.ts</p>
+            </div>
+          </div>
+          <p class="text-xs text-slate-400">Prepares semantic PR bodies and triggers @qodo-merge-bot AI code reviews.</p>
+          <span class="inline-block px-2 py-0.5 text-[10px] bg-purple-500/10 text-purple-400 rounded border border-purple-500/20 font-mono">Role: GitHub & Qodo PRs</span>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Tab 3: MCP Tools View -->
+  <main id="view-mcp" class="hidden max-w-[1600px] mx-auto px-6 py-6 flex-1 w-full space-y-6">
+    <div class="glass-panel rounded-2xl p-6">
+      <h2 class="text-base font-bold text-white mb-2 flex items-center gap-2">
+        <i class="fa-solid fa-plug text-cyan-400"></i> Model Context Protocol (MCP) Schemas
+      </h2>
+      <p class="text-xs text-slate-400 mb-6">Standardized tool contracts exposed for TrueForge agent discovery and sandboxed invocation.</p>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 font-mono text-xs space-y-2">
+          <div class="text-cyan-400 font-bold">tool: github_fetch_ci_logs</div>
+          <div class="text-slate-400">Fetches structured CI/CD failure logs for a given GitHub Actions workflow run ID.</div>
+          <div class="text-[11px] text-slate-500">params: { runId: string, repo?: string }</div>
+        </div>
+
+        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 font-mono text-xs space-y-2">
+          <div class="text-emerald-400 font-bold">tool: sandbox_reproduce_test</div>
+          <div class="text-slate-400">Executes a test script inside an isolated sandbox container to confirm failures.</div>
+          <div class="text-[11px] text-slate-500">params: { testPath: string, timeoutMs: number }</div>
+        </div>
+
+        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 font-mono text-xs space-y-2">
+          <div class="text-blue-400 font-bold">tool: sandbox_apply_patch</div>
+          <div class="text-slate-400">Applies a code modification to a target source file in the isolated sandbox.</div>
+          <div class="text-[11px] text-slate-500">params: { filePath: string, content: string }</div>
+        </div>
+
+        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 font-mono text-xs space-y-2">
+          <div class="text-purple-400 font-bold">tool: governance_request_human_approval</div>
+          <div class="text-slate-400">Triggers TrueForge human-in-the-loop approval gate before remote git push.</div>
+          <div class="text-[11px] text-slate-500">params: { action: string, diff: string }</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Tab 4: Qodo Health View -->
+  <main id="view-qodo" class="hidden max-w-[1600px] mx-auto px-6 py-6 flex-1 w-full space-y-6">
+    <div class="glass-panel rounded-2xl p-6">
+      <div class="flex items-center justify-between mb-4">
+        <div>
+          <h2 class="text-base font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-award text-purple-400"></i> Qodo AI Code Review Matrix
+          </h2>
+          <p class="text-xs text-slate-400">Quality and vulnerability scores generated from automated PR reviews.</p>
+        </div>
+        <a href="https://github.com/Priyanshu123-coder/autofix-agent/pull/1" target="_blank" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold transition flex items-center gap-2">
+          <i class="fa-solid fa-external-link"></i> View PR #1 on GitHub
+        </a>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-slate-950 p-5 rounded-xl border border-slate-800 space-y-2">
+          <div class="text-xs text-slate-400">Security & Vulnerabilities</div>
+          <div class="text-2xl font-bold text-emerald-400 font-mono">0 CVEs / 0 High</div>
+          <div class="text-[11px] text-slate-500">Zero unhandled exceptions or leaks</div>
+        </div>
+
+        <div class="bg-slate-950 p-5 rounded-xl border border-slate-800 space-y-2">
+          <div class="text-xs text-slate-400">Sandbox Test Coverage</div>
+          <div class="text-2xl font-bold text-blue-400 font-mono">100.0%</div>
+          <div class="text-[11px] text-slate-500">All 5 unit tests passing cleanly</div>
+        </div>
+
+        <div class="bg-slate-950 p-5 rounded-xl border border-slate-800 space-y-2">
+          <div class="text-xs text-slate-400">Code Quality Grade</div>
+          <div class="text-2xl font-bold text-purple-400 font-mono">A+ (Exemplary)</div>
+          <div class="text-[11px] text-slate-500">Adheres to strict TypeScript patterns</div>
+        </div>
+      </div>
+    </div>
   </main>
 
   <script>
+    let audioEnabled = true;
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function playTone(freq = 440, type = 'sine', duration = 0.1) {
+      if (!audioEnabled || !audioCtx) return;
+      try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.value = freq;
+        gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+      } catch (e) {}
+    }
+
+    function toggleAudio() {
+      audioEnabled = !audioEnabled;
+      document.getElementById('audioIcon').className = audioEnabled ? 'fa-solid fa-volume-high' : 'fa-solid fa-volume-xmark text-slate-600';
+    }
+
+    function switchTab(tabId) {
+      ['studio', 'subagents', 'mcp', 'qodo'].forEach(t => {
+        document.getElementById(`view-${t}`).classList.add('hidden');
+        document.getElementById(`tabBtn-${t}`).className = 'px-3.5 py-1.5 rounded-lg transition hover:text-slate-200 flex items-center gap-2';
+      });
+      document.getElementById(`view-${tabId}`).classList.remove('hidden');
+      document.getElementById(`tabBtn-${tabId}`).className = 'px-3.5 py-1.5 rounded-lg transition tab-active flex items-center gap-2';
+      playTone(520, 'sine', 0.05);
+    }
+
     function log(msg, color = 'text-slate-300') {
       const term = document.getElementById('terminal');
       const time = new Date().toLocaleTimeString();
@@ -302,6 +481,7 @@
       if (status === 'active') {
         el.className = 'p-3 rounded-xl border active-pipeline flex items-center gap-3';
         icon.className = 'h-6 w-6 rounded-lg bg-blue-600 flex items-center justify-center text-xs font-bold text-white font-mono';
+        playTone(600, 'sine', 0.08);
       } else if (status === 'completed') {
         el.className = 'p-3 rounded-xl border border-emerald-500/40 bg-emerald-950/20 flex items-center gap-3';
         icon.className = 'h-6 w-6 rounded-lg bg-emerald-600 flex items-center justify-center text-xs font-bold text-white font-mono';
@@ -348,18 +528,21 @@
       log('[Step 4] Re-running complete test suite in TrueForge Sandbox...', 'text-cyan-400');
       await new Promise(r => setTimeout(r, 1200));
       log('✅ [Verification Passed] 5 of 5 unit tests passing in sandbox with 0 regressions!', 'text-emerald-400 font-bold');
+      playTone(880, 'triangle', 0.2);
       setStep(4, 'completed');
 
-      // Step 5
+      // Step 5: Human-in-the-loop
       document.getElementById('harnessBadge').innerText = 'AWAITING_APPROVAL';
       setStep(5, 'active');
       log('🔔 [TrueForge Governance Gate] Pausing execution for human operator sign-off...', 'text-purple-400 font-bold');
+      playTone(440, 'square', 0.15);
       document.getElementById('approvalCard').classList.remove('hidden');
     }
 
     function grantApproval() {
       document.getElementById('approvalCard').classList.add('hidden');
       setStep(5, 'completed');
+      playTone(700, 'sine', 0.1);
       proceedToPR();
     }
 
@@ -382,6 +565,7 @@
       document.getElementById('startBtn').disabled = false;
       document.getElementById('startBtn').innerHTML = '<i class="fa-solid fa-check"></i> Remediation Complete';
       log('✨ [AutoFix-Agent] Autonomous Remediation Successfully Completed!', 'text-emerald-300 font-bold');
+      playTone(950, 'sine', 0.3);
     }
   </script>
 </body>
