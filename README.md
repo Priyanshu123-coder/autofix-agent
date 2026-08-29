@@ -23,15 +23,15 @@ Raw LLM chat interfaces fail at autonomous engineering because they lack:
 
 ```mermaid
 flowchart TD
-    A[GitHub Actions CI Failure: Run #4829] --> B[TrueForge Agent Harness Runtime]
-    B --> C[1. Diagnostic Subagent: AST & Stack Trace Ingestion]
-    C --> D[2. TrueForge Sandbox: Local Reproduction in demo-repo/]
-    D --> E[3. LLM Synthesis: Zero-Guard & Quotient Repair]
-    E --> F[4. Verification Subagent: Multi-Pass Test Runner]
-    F -->|Tests Fail| E
-    F -->|5/5 Tests Pass (0 Regressions)| G[5. TrueForge Governance Gate: Operator Sign-off]
-    G -->|Human Approved| H[6. Git Manager: Branch Push & PR Creation]
-    H --> I[7. Qodo AI Code Review: /agentic_review Verification]
+    A["GitHub Actions CI Failure: Run #4829"] --> B["TrueForge Agent Harness Runtime"]
+    B --> C["1. Diagnostic Subagent: AST & Stack Trace Ingestion"]
+    C --> D["2. TrueForge Sandbox: Local Reproduction in demo-repo/"]
+    D --> E["3. LLM Synthesis: Zero-Guard & Quotient Repair"]
+    E --> F["4. Verification Subagent: Multi-Pass Test Runner"]
+    F -->|"Tests Fail"| E
+    F -->|"5/5 Tests Pass (0 Regressions)"| G["5. TrueForge Governance Gate: Operator Sign-off"]
+    G -->|"Human Approved"| H["6. Git Manager: Branch Push & PR Creation"]
+    H --> I["7. Qodo AI Code Review: /agentic_review Verification"]
 ```
 
 ---

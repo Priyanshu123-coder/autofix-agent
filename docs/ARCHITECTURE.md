@@ -11,20 +11,20 @@ AutoFix-Agent transforms raw LLMs into deterministic, enterprise-grade software 
 ```mermaid
 flowchart TD
     subgraph Ingestion
-        A[GitHub Actions CI Failure] --> B[GitHubTools: Log Fetcher & AST Parser]
+        A["GitHub Actions CI Failure"] --> B["GitHubTools: Log Fetcher & AST Parser"]
     end
 
     subgraph TrueForge Harness Runtime
-        B --> C[Diagnostic Subagent: Root-Cause Isolation]
-        C --> D[SandboxTools: Local Failure Reproduction in ./demo-repo]
-        D --> E[LLM Code Synthesizer: Zero-Guard Clause & Quotient Repair]
-        E --> F[Verification Subagent: Sandbox Multi-Pass Test Suite]
+        B --> C["Diagnostic Subagent: Root-Cause Isolation"]
+        C --> D["SandboxTools: Local Failure Reproduction in ./demo-repo"]
+        D --> E["LLM Code Synthesizer: Zero-Guard Clause & Quotient Repair"]
+        E --> F["Verification Subagent: Sandbox Multi-Pass Test Suite"]
     end
 
     subgraph Governance & Quality
-        F -->|5/5 Tests Pass (0 Regressions)| G[TrueForge Governance Gate: Operator Sign-off]
-        G -->|Operator Approved| H[PRManager: Branch Push & Pull Request Dispatch]
-        H --> I[Qodo AI: Automated /agentic_review & Quality Audit]
+        F -->|"5/5 Tests Pass (0 Regressions)"| G["TrueForge Governance Gate: Operator Sign-off"]
+        G -->|"Operator Approved"| H["PRManager: Branch Push & Pull Request Dispatch"]
+        H --> I["Qodo AI: Automated /agentic_review & Quality Audit"]
     end
 ```
 
