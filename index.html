@@ -1,0 +1,1670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AutoFix-Agent — TrueForge Mission Control</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:       #09090b;
+  --surface:  #111113;
+  --card:     #18181b;
+  --line:     #27272a;
+  --line2:    #3f3f46;
+  --gold:     #F0A030;
+  --gold-bg:  rgba(240,160,48,0.08);
+  --green:    #22c55e;
+  --green-bg: rgba(34,197,94,0.08);
+  --red:      #ef4444;
+  --red-bg:   rgba(239,68,68,0.08);
+  --blue:     #60a5fa;
+  --purple:   #c084fc;
+  --text:     #f4f4f5;
+  --text2:    #a1a1aa;
+  --text3:    #71717a;
+  --mono:     'JetBrains Mono', monospace;
+  --sans:     'Inter', -apple-system, sans-serif;
+  --r:        6px;
+}
+
+html, body { height: 100%; min-height: 100vh; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 13px;
+  line-height: 1.5;
+  display: flex;
+  flex-direction: column;
+  overflow-x: hidden;
+}
+
+/* ── TOP NAV ── */
+nav {
+  height: 52px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+
+.nav-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mobile-menu-btn {
+  display: none;
+  background: none;
+  border: 1px solid var(--line);
+  color: var(--text2);
+  padding: 6px;
+  border-radius: var(--r);
+  cursor: pointer;
+}
+
+.logo-mark {
+  width: 32px;
+  height: 32px;
+  background: var(--gold);
+  color: #000;
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px;
+}
+
+.logo-text {
+  font-size: 19px;
+  font-weight: 900;
+  color: var(--text);
+  letter-spacing: -0.5px;
+}
+
+.logo-text span { color: var(--gold); }
+
+.logo-tag {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text3);
+  border: 1px solid var(--line);
+  padding: 2px 7px;
+  border-radius: 3px;
+}
+
+.nav-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text2);
+  background: var(--card);
+  border: 1px solid var(--line);
+  padding: 4px 10px;
+  border-radius: var(--r);
+}
+
+.dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--green);
+  flex-shrink: 0;
+}
+
+.dot.amber { background: var(--gold); }
+.dot.red   { background: var(--red);  }
+.dot.pulse { animation: pulse 2s ease-in-out infinite; }
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.35; }
+}
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text2);
+  text-decoration: none;
+  border: 1px solid var(--line);
+  padding: 4px 10px;
+  border-radius: var(--r);
+  transition: all 0.15s;
+}
+
+.nav-link:hover { color: var(--text); border-color: var(--line2); }
+.nav-link.purple { color: var(--purple); border-color: rgba(192,132,252,0.3); }
+.nav-link.purple:hover { border-color: var(--purple); }
+
+/* ── APP LAYOUT ── */
+.layout {
+  display: flex;
+  flex: 1;
+  min-height: calc(100vh - 52px);
+  overflow: hidden;
+}
+
+/* ── SIDEBAR ── */
+.sidebar {
+  width: 220px;
+  background: var(--surface);
+  border-right: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  overflow-y: auto;
+}
+
+.sidebar-group { padding: 14px 12px 6px; }
+
+.sidebar-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text3);
+  letter-spacing: 1.5px;
+  margin-bottom: 6px;
+  padding: 0 8px;
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 8px;
+  border-radius: var(--r);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text2);
+  transition: all 0.12s;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+}
+
+.sidebar-item:hover { background: var(--card); color: var(--text); }
+
+.sidebar-item.active {
+  background: var(--gold-bg);
+  color: var(--gold);
+  font-weight: 700;
+}
+
+.sidebar-badge {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 3px;
+}
+
+.badge-red    { background: var(--red-bg);   color: var(--red);    border: 1px solid rgba(239,68,68,0.25); }
+.badge-green  { background: var(--green-bg); color: var(--green);  border: 1px solid rgba(34,197,94,0.25); }
+.badge-muted  { color: var(--text3); }
+
+.sidebar-divider { height: 1px; background: var(--line); margin: 6px 12px; }
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 3px 8px;
+}
+
+.stat-key { font-family: var(--mono); font-size: 10px; font-weight: 600; color: var(--text3); }
+.stat-val { font-family: var(--mono); font-size: 11px; font-weight: 600; color: var(--text2); }
+.stat-val.gold   { color: var(--gold); font-weight: 700; }
+.stat-val.green  { color: var(--green); }
+.stat-val.red    { color: var(--red); }
+.stat-val.purple { color: var(--purple); }
+
+/* ── MAIN CONTENT ── */
+.main {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* Mission header */
+.mission-header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
+  padding: 18px 24px;
+  flex-shrink: 0;
+}
+
+.mission-eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--gold);
+  letter-spacing: 1.5px;
+  margin-bottom: 6px;
+}
+
+.mission-title {
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--text);
+  letter-spacing: -0.5px;
+  margin-bottom: 8px;
+  line-height: 1.25;
+}
+
+.mission-title code {
+  font-family: var(--mono);
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--blue);
+  background: rgba(96,165,250,0.1);
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.mission-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text2);
+  flex-wrap: wrap;
+}
+
+.mission-meta .sep { color: var(--text3); }
+
+.fail-chip {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--red-bg);
+  color: var(--red);
+  border: 1px solid rgba(239,68,68,0.3);
+  padding: 2px 8px;
+  border-radius: 3px;
+}
+
+.run-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 20px;
+  background: var(--gold);
+  color: #000;
+  font-size: 13px;
+  font-weight: 800;
+  border: none;
+  border-radius: var(--r);
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.run-btn:hover { background: #f5b040; }
+.run-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+/* State machine */
+.state-track {
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+  padding: 12px 24px;
+  flex-shrink: 0;
+  overflow-x: auto;
+}
+
+.state-track-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text3);
+  letter-spacing: 1.5px;
+  margin-bottom: 10px;
+}
+
+.states {
+  display: flex;
+  align-items: center;
+  min-width: 520px;
+}
+
+.state-node {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.state-circle {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1.5px solid var(--line2);
+  background: var(--card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text3);
+  transition: all 0.3s;
+  position: relative;
+  z-index: 1;
+}
+
+.state-circle.done  { border-color: var(--green);  color: var(--green);  background: var(--green-bg); font-weight: 800; }
+.state-circle.active{ border-color: var(--gold);   color: var(--gold);   background: var(--gold-bg);  animation: ring 2s ease-in-out infinite; font-weight: 800; }
+.state-circle.hold  { border-color: var(--red);    color: var(--red);    background: var(--red-bg);   animation: ring-red 1.5s ease-in-out infinite; font-weight: 800; }
+
+@keyframes ring     { 0%,100%{box-shadow:0 0 0 0 rgba(240,160,48,0.3)} 50%{box-shadow:0 0 0 4px rgba(240,160,48,0)} }
+@keyframes ring-red { 0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0.4)}  50%{box-shadow:0 0 0 5px rgba(239,68,68,0)} }
+
+.state-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 600;
+  color: var(--text3);
+  white-space: nowrap;
+  text-align: center;
+}
+
+.state-label.done   { color: var(--green); font-weight: 700; }
+.state-label.active { color: var(--gold);  font-weight: 700; }
+.state-label.hold   { color: var(--red);   font-weight: 700; }
+
+.state-connector {
+  flex: 1;
+  height: 1px;
+  background: var(--line2);
+  min-width: 16px;
+  margin-top: -14px;
+}
+
+.state-connector.done { background: var(--green); }
+
+/* ── WORK AREA (2-Column Grid) ── */
+.work-area {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Left panel: Timeline & Verification Signals */
+.left-panel {
+  border-right: 1px solid var(--line);
+  background: var(--surface);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.panel-section {
+  padding: 16px 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.panel-section-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text3);
+  letter-spacing: 1.5px;
+  margin-bottom: 12px;
+}
+
+/* Timeline items */
+.tl-item {
+  display: flex;
+  gap: 10px;
+  position: relative;
+  padding-bottom: 16px;
+}
+
+.tl-item:last-child { padding-bottom: 0; }
+
+.tl-item::before {
+  content: '';
+  position: absolute;
+  left: 12px;
+  top: 24px;
+  bottom: 0;
+  width: 1px;
+  background: var(--line);
+}
+
+.tl-item:last-child::before { display: none; }
+.tl-item.done::before { background: var(--green); }
+
+.tl-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1.5px solid var(--line2);
+  background: var(--card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text3);
+  flex-shrink: 0;
+  transition: all 0.25s;
+  position: relative;
+  z-index: 1;
+}
+
+.tl-dot.done    { border-color: var(--green); color: var(--green); background: var(--green-bg); font-weight: 800; }
+.tl-dot.running { border-color: var(--gold);  color: var(--gold);  background: var(--gold-bg);  animation: ring 2s ease-in-out infinite; font-weight: 800; }
+.tl-dot.hold    { border-color: var(--red);   color: var(--red);   background: var(--red-bg);   animation: ring-red 1.5s ease-in-out infinite; font-weight: 800; }
+
+.tl-content { flex: 1; padding-top: 2px; }
+
+.tl-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text2);
+  margin-bottom: 2px;
+  transition: color 0.2s;
+}
+
+.tl-title.active { color: var(--text); font-weight: 700; }
+.tl-desc  { font-size: 11px; color: var(--text3); line-height: 1.4; }
+.tl-time  { font-family: var(--mono); font-size: 10px; font-weight: 600; color: var(--text3); margin-top: 2px; }
+
+/* Metric signals */
+.metric-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.metric-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  padding: 8px 10px;
+}
+
+.metric-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--text3);
+  letter-spacing: 0.8px;
+  margin-bottom: 2px;
+}
+
+.metric-value {
+  font-family: var(--mono);
+  font-size: 16px;
+  font-weight: 800;
+  line-height: 1.1;
+  color: var(--text2);
+}
+
+.metric-value.green  { color: var(--green);  }
+.metric-value.gold   { color: var(--gold);   }
+.metric-value.red    { color: var(--red);    }
+.metric-value.blue   { color: var(--blue);   }
+
+/* Right panel: Terminal, Gate, Diff, Qodo */
+.right-panel {
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px 20px;
+  background: var(--bg);
+}
+
+/* Terminal */
+.terminal {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  overflow: hidden;
+}
+
+.terminal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: var(--card);
+  border-bottom: 1px solid var(--line);
+}
+
+.terminal-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text2);
+}
+
+.terminal-dots { display: flex; gap: 5px; }
+.t-dot { width: 9px; height: 9px; border-radius: 50%; }
+
+.terminal-body {
+  padding: 10px 12px;
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.7;
+  height: 140px;
+  overflow-y: auto;
+  background: #060608;
+}
+
+.log-line { display: flex; gap: 8px; }
+.log-ts   { color: var(--text3); min-width: 60px; flex-shrink: 0; font-weight: 500; }
+.log-tag  { min-width: 70px; font-weight: 700; flex-shrink: 0; }
+
+.log-tag.harness { color: var(--blue); }
+.log-tag.sandbox { color: var(--gold); }
+.log-tag.approve { color: var(--red); }
+.log-tag.success { color: var(--green); }
+.log-tag.system  { color: var(--text3); }
+
+.log-msg { color: var(--text2); }
+.log-msg.hi { color: var(--text); font-weight: 600; }
+
+/* Human Approval Gate */
+.approval-gate {
+  background: #181111;
+  border: 1.5px solid var(--red);
+  border-radius: var(--r);
+  padding: 18px 20px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.15);
+  margin-bottom: 4px;
+}
+
+.approval-gate::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--red);
+}
+
+.gate-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--red);
+  letter-spacing: 1.5px;
+  margin-bottom: 6px;
+  font-weight: 800;
+}
+
+.blink { animation: blink 1s step-end infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+.gate-title {
+  font-size: 17px;
+  font-weight: 900;
+  color: #fff;
+  margin-bottom: 6px;
+}
+
+.gate-desc {
+  font-size: 12.5px;
+  color: var(--text2);
+  line-height: 1.6;
+  margin-bottom: 16px;
+  max-width: 600px;
+}
+
+.gate-desc strong { color: #fff; font-weight: 700; }
+
+.gate-actions { 
+  display: flex; 
+  gap: 12px; 
+  align-items: center; 
+  flex-wrap: wrap; 
+  padding-top: 12px;
+  border-top: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.btn-approve {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  background: #22c55e;
+  color: #000;
+  font-size: 13px;
+  font-weight: 900;
+  border: none;
+  border-radius: var(--r);
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+  box-shadow: 0 2px 10px rgba(34, 197, 94, 0.35);
+}
+
+.btn-approve:hover { 
+  background: #16a34a; 
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(34, 197, 94, 0.5);
+}
+
+.btn-reject {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 18px;
+  background: rgba(239, 68, 68, 0.1);
+  color: #fca5a5;
+  font-size: 13px;
+  font-weight: 700;
+  border: 1.5px solid rgba(239, 68, 68, 0.4);
+  border-radius: var(--r);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-reject:hover { 
+  background: rgba(239, 68, 68, 0.2); 
+  color: #ef4444; 
+  border-color: #ef4444; 
+}
+
+/* Diff Viewer */
+.diff-viewer {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  overflow: hidden;
+}
+
+.diff-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  background: var(--card);
+  border-bottom: 1px solid var(--line);
+}
+
+.diff-filename {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.diff-tag {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 3px;
+  border: 1px solid var(--line2);
+  color: var(--text3);
+}
+
+.diff-tag.patched { border-color: rgba(34,197,94,0.4); color: var(--green); background: var(--green-bg); }
+
+.diff-stats {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--text3);
+}
+
+.diff-body { font-family: var(--mono); font-size: 11px; overflow-x: auto; background: #060608; }
+
+.diff-row { display: flex; gap: 0; }
+.diff-num {
+  width: 32px;
+  padding: 2px 6px;
+  text-align: right;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text3);
+  border-right: 1px solid var(--line);
+  user-select: none;
+  flex-shrink: 0;
+  background: var(--card);
+}
+
+.diff-code { padding: 2px 10px; color: var(--text3); flex: 1; white-space: pre; }
+
+.diff-row.removed .diff-num  { color: var(--red);   background: var(--red-bg); border-color: rgba(239,68,68,0.2); }
+.diff-row.removed .diff-code { color: var(--red);   background: var(--red-bg); font-weight: 600; }
+.diff-row.added   .diff-num  { color: var(--green); background: var(--green-bg); border-color: rgba(34,197,94,0.2); }
+.diff-row.added   .diff-code { color: var(--green); background: var(--green-bg); font-weight: 600; }
+
+/* Qodo Card */
+.qodo-card {
+  background: var(--surface);
+  border: 1px solid rgba(34,197,94,0.3);
+  border-radius: var(--r);
+  padding: 14px;
+}
+
+.qodo-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.qodo-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.badge-merged {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 3px;
+  background: var(--green-bg);
+  color: var(--green);
+  border: 1px solid rgba(34,197,94,0.3);
+}
+
+.qodo-body {
+  background: #060608;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 10px 12px;
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.9;
+}
+
+/* ── OTHER VIEWS (Subagents, MCP, Audit) ── */
+.view { display: none; }
+.view.active { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+
+.view-inner {
+  padding: 20px 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.view-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.4px;
+  margin-bottom: 4px;
+}
+
+.view-sub { font-size: 12px; font-weight: 500; color: var(--text2); margin-bottom: 18px; }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  padding: 14px 16px;
+}
+
+.card + .card { margin-top: 10px; }
+
+.card-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.card-desc { font-size: 12px; color: var(--text2); line-height: 1.5; }
+
+.card-tag {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 3px;
+  border: 1px solid;
+}
+
+.card-tag.blue   { color: var(--blue);   border-color: rgba(96,165,250,0.3);   background: rgba(96,165,250,0.06); }
+.card-tag.green  { color: var(--green);  border-color: rgba(34,197,94,0.3);    background: var(--green-bg); }
+.card-tag.purple { color: var(--purple); border-color: rgba(192,132,252,0.3);  background: rgba(192,132,252,0.06); }
+.card-tag.gold   { color: var(--gold);   border-color: rgba(240,160,48,0.3);   background: var(--gold-bg); }
+
+.card-foot {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text3);
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+}
+
+pre {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text2);
+  line-height: 1.7;
+  overflow-x: auto;
+}
+
+/* ── TOAST CONTAINER ── */
+#toasts {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  pointer-events: none;
+}
+
+.toast {
+  background: var(--surface);
+  border: 1px solid var(--line2);
+  border-radius: var(--r);
+  padding: 8px 12px;
+  font-size: 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  min-width: 200px;
+  max-width: 280px;
+  pointer-events: all;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.2s, transform 0.2s;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
+
+.toast.show { opacity: 1; transform: none; }
+.toast-icon { margin-top: 1px; font-size: 12px; font-weight: 700; }
+.toast-title { font-weight: 700; color: var(--text); font-size: 12px; }
+.toast-sub   { font-size: 11px; color: var(--text2); margin-top: 1px; }
+
+/* ── RESPONSIVE MEDIA QUERIES ── */
+@media (max-width: 900px) {
+  .mobile-menu-btn { display: flex; }
+  .logo-tag { display: none; }
+  
+  .sidebar {
+    position: fixed;
+    top: 52px;
+    bottom: 0;
+    left: -240px;
+    z-index: 40;
+    width: 240px;
+    transition: left 0.2s ease-in-out;
+    box-shadow: 4px 0 20px rgba(0,0,0,0.6);
+  }
+  .sidebar.open { left: 0; }
+
+  .work-area {
+    grid-template-columns: 1fr;
+    overflow-y: auto;
+  }
+  .left-panel {
+    border-right: none;
+    border-bottom: 1px solid var(--line);
+    overflow-y: visible;
+  }
+  .right-panel {
+    overflow-y: visible;
+  }
+}
+
+@media (max-width: 600px) {
+  nav { padding: 0 12px; }
+  .mission-header { padding: 14px 16px; }
+  .state-track { padding: 10px 16px; }
+  .right-panel { padding: 12px 14px; }
+  .status-badge { display: none; }
+  .header-row { flex-direction: column; align-items: stretch; }
+  .run-btn { width: 100%; justify-content: center; }
+}
+</style>
+</head>
+<body>
+
+<!-- TOP NAV -->
+<nav>
+  <div class="nav-left">
+    <button class="mobile-menu-btn" onclick="toggleSidebar()">
+      <i data-lucide="menu" style="width:16px;height:16px"></i>
+    </button>
+    <div class="logo-mark">AF</div>
+    <div class="logo-text">AutoFix<span>-Agent</span></div>
+    <div class="logo-tag">TrueForge · FILE TF-007</div>
+  </div>
+  <div class="nav-right">
+    <div class="status-badge">
+      <div class="dot pulse"></div>
+      TrueForge Online
+    </div>
+    <div class="status-badge" id="stateChip">
+      <div class="dot" style="background:var(--text3)" id="chipDot"></div>
+      <span id="chipText">Standby</span>
+    </div>
+    <a href="https://github.com/Priyanshu123-coder/autofix-agent" target="_blank" class="nav-link">
+      <i data-lucide="github" style="width:13px;height:13px"></i>
+      Repo
+    </a>
+    <a href="https://github.com/Priyanshu123-coder/autofix-agent/pull/1" target="_blank" class="nav-link purple">
+      <i data-lucide="git-pull-request" style="width:13px;height:13px"></i>
+      Qodo PR #1
+    </a>
+  </div>
+</nav>
+
+<!-- APP LAYOUT -->
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-group">
+      <div class="sidebar-label">VIEWS</div>
+      <button class="sidebar-item active" onclick="switchView('incident',this)" id="nav-incident">
+        <i data-lucide="alert-circle" style="width:14px;height:14px;color:var(--red)"></i>
+        Active Incident
+        <span class="sidebar-badge badge-red">#4829</span>
+      </button>
+      <button class="sidebar-item" onclick="switchView('subagents',this)" id="nav-subagents">
+        <i data-lucide="cpu" style="width:14px;height:14px"></i>
+        Subagent Mesh
+        <span class="sidebar-badge badge-muted">3</span>
+      </button>
+      <button class="sidebar-item" onclick="switchView('mcp',this)" id="nav-mcp">
+        <i data-lucide="plug" style="width:14px;height:14px"></i>
+        MCP Registry
+      </button>
+      <button class="sidebar-item" onclick="switchView('audit',this)" id="nav-audit">
+        <i data-lucide="scroll-text" style="width:14px;height:14px"></i>
+        Session Audit
+      </button>
+    </div>
+
+    <div class="sidebar-divider"></div>
+
+    <div class="sidebar-group">
+      <div class="sidebar-label">SESSION</div>
+      <div class="stat-row"><span class="stat-key">ID</span><span class="stat-val gold">AF-4829</span></div>
+      <div class="stat-row"><span class="stat-key">ELAPSED</span><span class="stat-val" id="elapsed">00:00:00</span></div>
+      <div class="stat-row"><span class="stat-key">STATE</span><span class="stat-val" id="sideState">Standby</span></div>
+      <div class="stat-row"><span class="stat-key">SANDBOX</span><span class="stat-val green">Isolated</span></div>
+      <div class="stat-row"><span class="stat-key">QODO</span><span class="stat-val purple">Active</span></div>
+    </div>
+
+    <div class="sidebar-divider"></div>
+
+    <div class="sidebar-group">
+      <div class="sidebar-label">REPOSITORY</div>
+      <div class="stat-row"><span class="stat-key">NAME</span><span class="stat-val">autofix-agent</span></div>
+      <div class="stat-row"><span class="stat-key">BRANCH</span><span class="stat-val" style="color:var(--blue)">main</span></div>
+      <div class="stat-row"><span class="stat-key">COMMIT</span><span class="stat-val">fcbc661</span></div>
+    </div>
+  </aside>
+
+  <!-- VIEW 1: ACTIVE INCIDENT -->
+  <div class="view active" id="view-incident">
+
+    <!-- Mission Header -->
+    <div class="mission-header">
+      <div class="header-row">
+        <div>
+          <div class="mission-eyebrow">MISSION · CI/CD FAILURE · AUTONOMOUS REMEDIATION</div>
+          <div class="mission-title" id="missionMainTitle">
+            CI Run #4829 — Jest failure in <code>calculator.test.js</code>
+          </div>
+          <div class="mission-meta">
+            <span class="fail-chip">
+              <span class="dot red" style="animation:pulse 1s ease-in-out infinite"></span>
+              Failed
+            </span>
+            <span class="sep">·</span>
+            <span>Scenario: 
+              <select id="scenarioSelector" onchange="changeScenario()" style="background:var(--card);color:var(--text);border:1px solid var(--line2);border-radius:4px;padding:2px 8px;font-family:var(--mono);font-size:11px;font-weight:700;cursor:pointer;outline:none">
+                <option value="4829">Incident #4829 · Arithmetic & Zero-Check Assertion</option>
+                <option value="5104">Incident #5104 · Unhandled Null Pointer in Auth Handler</option>
+                <option value="6392">Incident #6392 · Async Network Timeout & Retry Guard</option>
+              </select>
+            </span>
+            <span class="sep">·</span>
+            <span>Branch: <strong style="color:var(--text);font-weight:700">main</strong></span>
+            <span class="sep">·</span>
+            <span id="failCountLabel">2 tests failing</span>
+          </div>
+        </div>
+        <button class="run-btn" id="runBtn" onclick="startMission()">
+          <i data-lucide="play" style="width:14px;height:14px"></i>
+          Run Mission
+        </button>
+      </div>
+    </div>
+
+    <!-- State Machine Stepper -->
+    <div class="state-track">
+      <div class="state-track-label">TRUEFORGE STATE MACHINE</div>
+      <div class="states" id="stateMachine"></div>
+    </div>
+
+    <!-- Work Area -->
+    <div class="work-area">
+
+      <!-- Left Panel: Timeline & Verification Signals -->
+      <div class="left-panel">
+        <div class="panel-section">
+          <div class="panel-section-label">EXECUTION TIMELINE</div>
+          <div id="timeline"></div>
+        </div>
+
+        <div class="panel-section">
+          <div class="panel-section-label">VERIFICATION SIGNALS</div>
+          <div class="metric-grid">
+            <div class="metric-card">
+              <div class="metric-label">SANDBOX</div>
+              <div class="metric-value green" id="m-sandbox">—</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-label">REGRESSIONS</div>
+              <div class="metric-value green" id="m-regression">—</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-label">FILES CHANGED</div>
+              <div class="metric-value" id="m-files">—</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-label">RISK LEVEL</div>
+              <div class="metric-value blue" id="m-risk">—</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Panel: Terminal, Approval Gate, Diff Viewer & Qodo -->
+      <div class="right-panel">
+
+        <!-- Terminal Panel -->
+        <div class="terminal">
+          <div class="terminal-header">
+            <div class="terminal-title">
+              <i data-lucide="terminal" style="width:13px;height:13px;color:var(--gold)"></i>
+              <span>TrueForge Harness Log</span>
+              <span style="color:var(--text3);font-size:10px" id="termStatus">· PID 4829 · Standby</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px">
+              <button onclick="clearTerm()" style="background:none;border:none;cursor:pointer;font-family:var(--mono);font-size:10px;font-weight:600;color:var(--text3);display:flex;align-items:center;gap:4px">
+                <i data-lucide="trash-2" style="width:11px;height:11px"></i> Clear
+              </button>
+              <div class="terminal-dots">
+                <div class="t-dot" style="background:#ff5f57"></div>
+                <div class="t-dot" style="background:#febc2e"></div>
+                <div class="t-dot" style="background:#28c840"></div>
+              </div>
+            </div>
+          </div>
+          <div class="terminal-body" id="termBody">
+            <div class="log-line">
+              <span class="log-ts"></span>
+              <span class="log-msg" style="color:var(--text3)">// TrueForge Sandbox Runtime initialized. Ready to execute mission.</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Approval Gate (Appears at Step 5) -->
+        <div class="approval-gate" id="approvalGate" style="display:none">
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:8px">
+            <div>
+              <div class="gate-label">
+                <span class="blink">█</span>
+                LICENCE REQUIRED · IRREVERSIBLE ACTION PENDING
+              </div>
+              <div class="gate-title">Human sign-off required</div>
+            </div>
+            <!-- PROMINENT BUTTONS DIRECTLY AT THE TOP -->
+            <div class="gate-actions" style="margin-top:0;padding-top:0;border-top:none;display:flex;gap:8px">
+              <button class="btn-approve" onclick="approve()" style="background:#22c55e;color:#000;font-size:13px;font-weight:900;padding:10px 20px;border-radius:6px;cursor:pointer;border:none;box-shadow:0 0 15px rgba(34,197,94,0.6);display:flex;align-items:center;gap:6px">
+                <i data-lucide="check" style="width:16px;height:16px"></i>
+                Approve & open PR
+              </button>
+              <button class="btn-reject" onclick="reject()" style="background:rgba(239,68,68,0.15);color:#fca5a5;border:1.5px solid #ef4444;font-size:12px;font-weight:700;padding:8px 14px;border-radius:6px;cursor:pointer;display:flex;align-items:center;gap:4px">
+                <i data-lucide="x" style="width:14px;height:14px"></i>
+                Reject
+              </button>
+            </div>
+          </div>
+          <div class="gate-desc" style="margin-bottom:0">
+            The agent has verified the fix passes all 5 sandbox tests with zero regressions.
+            <strong>Next step: push branch and open a GitHub PR.</strong>
+            The harness is holding execution until you click Approve.
+          </div>
+        </div>
+
+        <!-- Code Diff Viewer -->
+        <div class="diff-viewer">
+          <div class="diff-header">
+            <div class="diff-filename">
+              <i data-lucide="file-code" style="width:13px;height:13px;color:var(--blue)"></i>
+              <span>src/calculator.js</span>
+              <span class="diff-tag" id="diffTag">Original</span>
+            </div>
+            <div class="diff-stats">
+              <span style="color:var(--red)">−1 line</span>
+              <span style="color:var(--green);margin-left:6px">+3 lines</span>
+            </div>
+          </div>
+          <div class="diff-body">
+            <div class="diff-row"><div class="diff-num">1</div><div class="diff-code">class Calculator {</div></div>
+            <div class="diff-row"><div class="diff-num">2</div><div class="diff-code">  divide(a, b) {</div></div>
+            <div class="diff-row removed"><div class="diff-num">- 3</div><div class="diff-code">    return a * b;  // BUG: multiplied, no zero check</div></div>
+            <div class="diff-row added" id="d1" style="display:none"><div class="diff-num">+ 3</div><div class="diff-code">    if (b === 0) {</div></div>
+            <div class="diff-row added" id="d2" style="display:none"><div class="diff-num">+ 4</div><div class="diff-code">      throw new Error('Cannot divide by zero');</div></div>
+            <div class="diff-row added" id="d3" style="display:none"><div class="diff-num">+ 5</div><div class="diff-code">    }</div></div>
+            <div class="diff-row added" id="d4" style="display:none"><div class="diff-num">+ 6</div><div class="diff-code">    return a / b;</div></div>
+            <div class="diff-row"><div class="diff-num">7</div><div class="diff-code">  }</div></div>
+            <div class="diff-row"><div class="diff-num">8</div><div class="diff-code">}</div></div>
+          </div>
+        </div>
+
+        <!-- Qodo PR Output Card -->
+        <div class="qodo-card" id="qodoCard" style="display:none">
+          <div class="qodo-header">
+            <div class="qodo-title">
+              <i data-lucide="git-pull-request" style="width:15px;height:15px;color:var(--green)"></i>
+              PR #1 opened — Qodo review triggered
+            </div>
+            <span class="badge-merged">Merged</span>
+          </div>
+          <div class="qodo-body">
+            <div style="color:var(--purple);font-weight:600">@qodo-code-review  /agentic_review completed</div>
+            <div style="color:var(--green);font-weight:600">✓  0 high vulnerabilities · 5/5 tests pass · 0 regressions</div>
+            <div style="color:var(--text3);font-size:10px;margin-top:4px">
+              PR Link: <a href="https://github.com/Priyanshu123-coder/autofix-agent/pull/1"
+                     target="_blank" style="color:var(--blue);text-decoration:underline;font-weight:600">
+                github.com/Priyanshu123-coder/autofix-agent/pull/1
+              </a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEW 2: SUBAGENTS -->
+  <div class="view" id="view-subagents">
+    <div class="view-inner">
+      <div class="view-title">Subagent Mesh</div>
+      <div class="view-sub">Specialized autonomous workers delegated by the TrueForge runtime harness.</div>
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <div class="card-title">Diagnostic Subagent</div>
+          <span class="card-tag blue">AST Triage</span>
+        </div>
+        <div class="card-desc">Deconstructs raw GitHub Actions stderr, parses stack frames, and isolates the exact failing source lines before any patch is attempted.</div>
+        <div class="card-foot">src/agent/subagents.ts</div>
+      </div>
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <div class="card-title">Verification Subagent</div>
+          <span class="card-tag green">Sandbox Isolation</span>
+        </div>
+        <div class="card-desc">Executes test suites inside the isolated TrueForge sandbox and verifies zero regressions before the approval gate is opened.</div>
+        <div class="card-foot">src/tools/sandbox_tools.ts</div>
+      </div>
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <div class="card-title">Qodo PR Subagent</div>
+          <span class="card-tag purple">Review Dispatch</span>
+        </div>
+        <div class="card-desc">Formats semantic pull request descriptions, creates branches, and issues automated /agentic_review commands to trigger the Qodo code review pipeline.</div>
+        <div class="card-foot">src/github/pr_manager.ts</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEW 3: MCP TOOL REGISTRY -->
+  <div class="view" id="view-mcp">
+    <div class="view-inner">
+      <div class="view-title">MCP Tool Registry</div>
+      <div class="view-sub">Standardized tool contracts discovered and invoked by the TrueForge agent harness at runtime.</div>
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <div class="card-title" style="font-family:var(--mono);color:var(--blue)">github_fetch_ci_logs</div>
+          <span class="card-tag blue">v1.0.0</span>
+        </div>
+        <div class="card-desc">Fetches structured CI/CD failure logs for a given GitHub Actions workflow run ID.</div>
+        <div class="card-foot">params: { runId: string, repo?: string }</div>
+      </div>
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <div class="card-title" style="font-family:var(--mono);color:var(--green)">sandbox_reproduce_test</div>
+          <span class="card-tag green">v1.0.0</span>
+        </div>
+        <div class="card-desc">Executes a test script inside an isolated sandbox container to confirm the failure reproduces locally.</div>
+        <div class="card-foot">params: { testPath: string, timeoutMs: number }</div>
+      </div>
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <div class="card-title" style="font-family:var(--mono);color:var(--gold)">sandbox_apply_patch</div>
+          <span class="card-tag gold">v1.0.0</span>
+        </div>
+        <div class="card-desc">Applies AST-level modifications to target files inside the isolated sandbox before verification.</div>
+        <div class="card-foot">params: { filePath: string, patch: string }</div>
+      </div>
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+          <div class="card-title" style="font-family:var(--mono);color:var(--purple)">governance_request_approval</div>
+          <span class="card-tag purple">v1.0.0</span>
+        </div>
+        <div class="card-desc">Triggers the TrueForge human-in-the-loop governance gate, halting execution until the operator approves or rejects the pending action.</div>
+        <div class="card-foot">params: { action: string, diff: string }</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEW 4: SESSION AUDIT -->
+  <div class="view" id="view-audit">
+    <div class="view-inner">
+      <div class="view-title">Session Audit</div>
+      <div class="view-sub">Persistent session snapshots stored across crashes, reconnects, and operator pauses.</div>
+      <div class="card">
+        <div class="card-title" style="margin-bottom:10px">Session AF-4829 snapshot (.trueforge/sessions.json)</div>
+        <pre>{
+  "sessionId": "session-4829",
+  "status": "COMPLETED",
+  "attemptCount": 1,
+  "failureReport": {
+    "runId": "4829",
+    "extractedError": "FAIL calculator.test.js: Division mismatch",
+    "suspectedFiles": ["src/calculator.js"]
+  },
+  "appliedPatches": [{
+    "filePath": "src/calculator.js",
+    "explanation": "Zero-check guard + division operator fix"
+  }],
+  "governanceApproval": {
+    "status": "APPROVED",
+    "operator": "Priyanshu Singh",
+    "timestamp": "2026-08-29T14:22:03Z"
+  }
+}</pre>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- TOASTS -->
+<div id="toasts"></div>
+
+<script>
+lucide.createIcons();
+
+/* ── Mobile Sidebar Toggle ── */
+function toggleSidebar() {
+  const sb = document.getElementById('sidebar');
+  sb.classList.toggle('open');
+}
+
+/* ── State machine setup ── */
+const STATES = [
+  {id:'ANALYZING',label:'Analyzing'},
+  {id:'REPRODUCING',label:'Reproducing'},
+  {id:'PATCHING',label:'Patching'},
+  {id:'VERIFYING',label:'Verifying'},
+  {id:'AWAITING_APPROVAL',label:'Approval'},
+  {id:'COMPLETED',label:'Completed'},
+];
+
+const sm = document.getElementById('stateMachine');
+STATES.forEach((s,i) => {
+  if(i > 0) {
+    const line = document.createElement('div');
+    line.className = 'state-connector';
+    line.id = `smline-${i}`;
+    sm.appendChild(line);
+  }
+  const node = document.createElement('div');
+  node.className = 'state-node';
+  node.innerHTML = `
+    <div class="state-circle" id="smc-${i}">${i+1}</div>
+    <div class="state-label" id="sml-${i}">${s.label}</div>
+  `;
+  sm.appendChild(node);
+});
+
+/* ── Timeline setup ── */
+const STEPS = [
+  {title:'Log Parsing & Ingestion',     desc:'Extract stack trace and failing assertion from CI logs'},
+  {title:'Sandbox Reproduction',         desc:'Confirm failure in isolated container — exit code 1'},
+  {title:'Patch Synthesis',              desc:'Generate zero-guard fix and correct division operator'},
+  {title:'Sandbox Verification',         desc:'Re-run full test suite — 5/5 pass, 0 regressions'},
+  {title:'Governance Approval Gate',     desc:'Human sign-off required before any git push'},
+  {title:'Qodo Review & PR Dispatch',    desc:'Branch created, PR opened, /agentic_review triggered'},
+];
+
+const tl = document.getElementById('timeline');
+STEPS.forEach((s,i) => {
+  const el = document.createElement('div');
+  el.className = 'tl-item';
+  el.id = `step-${i+1}`;
+  el.innerHTML = `
+    <div class="tl-dot" id="tdot-${i+1}">${i+1}</div>
+    <div class="tl-content">
+      <div class="tl-title" id="ttitle-${i+1}">${s.title}</div>
+      <div class="tl-desc">${s.desc}</div>
+      <div class="tl-time" id="ttime-${i+1}"></div>
+    </div>
+  `;
+  tl.appendChild(el);
+});
+
+/* ── Elapsed timer ── */
+let startTime = null, timerRef = null;
+function startTimer() {
+  startTime = Date.now();
+  timerRef = setInterval(() => {
+    const s = Math.floor((Date.now()-startTime)/1000);
+    const hh = String(Math.floor(s/3600)).padStart(2,'0');
+    const mm = String(Math.floor((s%3600)/60)).padStart(2,'0');
+    const ss = String(s%60).padStart(2,'0');
+    document.getElementById('elapsed').textContent = `${hh}:${mm}:${ss}`;
+  }, 1000);
+}
+
+/* ── State updates ── */
+function setChip(text, color) {
+  const colors = {gold:'var(--gold)', green:'var(--green)', red:'var(--red)', blue:'var(--blue)', dim:'var(--text3)'};
+  document.getElementById('chipText').textContent = text;
+  document.getElementById('chipDot').style.background = colors[color] || colors.dim;
+  document.getElementById('sideState').textContent = text;
+}
+
+function setStateMachine(activeIdx) {
+  STATES.forEach((_,i) => {
+    const c = document.getElementById(`smc-${i}`);
+    const l = document.getElementById(`sml-${i}`);
+    const line = document.getElementById(`smline-${i}`);
+    if(i < activeIdx) {
+      c.className='state-circle done'; c.textContent='✓';
+      l.className='state-label done';
+      if(line) line.className='state-connector done';
+    } else if(i === activeIdx) {
+      const isHold = STATES[i].id === 'AWAITING_APPROVAL';
+      c.className = isHold ? 'state-circle hold' : 'state-circle active';
+      c.textContent = isHold ? '!' : `${i+1}`;
+      l.className = isHold ? 'state-label hold' : 'state-label active';
+    } else {
+      c.className='state-circle'; c.textContent=i+1;
+      l.className='state-label';
+      if(line) line.className='state-connector';
+    }
+  });
+}
+
+function setStep(n, status) {
+  const dot   = document.getElementById(`tdot-${n}`);
+  const title = document.getElementById(`ttitle-${n}`);
+  const time  = document.getElementById(`ttime-${n}`);
+  const item  = document.getElementById(`step-${n}`);
+  const now   = new Date().toLocaleTimeString();
+  if(status === 'running') {
+    dot.className='tl-dot running'; dot.textContent=n;
+    title.className='tl-title active'; time.textContent=now;
+  } else if(status === 'done') {
+    dot.className='tl-dot done'; dot.innerHTML='<svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>';
+    item.classList.add('done'); title.className='tl-title active';
+  } else if(status === 'hold') {
+    dot.className='tl-dot hold'; dot.textContent='!';
+    title.className='tl-title active';
+  }
+}
+
+function log(tag, cls, msg, hiMsg=false) {
+  const body = document.getElementById('termBody');
+  const t = new Date().toLocaleTimeString();
+  const row = document.createElement('div');
+  row.className = 'log-line';
+  row.innerHTML = `
+    <span class="log-ts">${t}</span>
+    <span class="log-tag ${cls}">${tag}</span>
+    <span class="log-msg${hiMsg?' hi':''}">${msg}</span>
+  `;
+  body.appendChild(row);
+  body.scrollTop = body.scrollHeight;
+}
+
+function clearTerm() {
+  document.getElementById('termBody').innerHTML = '<div class="log-line"><span class="log-ts"></span><span class="log-msg" style="color:var(--text3)">// Terminal cleared.</span></div>';
+}
+
+function toast(title, sub, type='info') {
+  const container = document.getElementById('toasts');
+  const el = document.createElement('div');
+  const icons = {success:'✓', error:'✕', info:'·'};
+  const colors = {success:'var(--green)', error:'var(--red)', info:'var(--text3)'};
+  el.className = 'toast';
+  el.innerHTML = `
+    <div class="toast-icon" style="color:${colors[type]}">${icons[type]||'·'}</div>
+    <div><div class="toast-title">${title}</div><div class="toast-sub">${sub}</div></div>
+  `;
+  container.appendChild(el);
+  requestAnimationFrame(() => { el.classList.add('show'); });
+  setTimeout(() => {
+    el.classList.remove('show');
+    setTimeout(() => el.remove(), 200);
+  }, 3200);
+}
+
+function wait(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+/* ── Multi-Scenario Configuration ── */
+const SCENARIOS = {
+  '4829': {
+    title: 'CI Run #4829 — Jest failure in <code>calculator.test.js</code>',
+    failLabel: '2 tests failing',
+    file: 'src/calculator.js',
+    logIngest: 'Found 2 failing assertions in calculator.test.js (Division operations mismatch)',
+    fixSummary: 'Synthesizing fix — zero-guard + division operator correction',
+    diffOld: '-    return a * b;  // BUG: multiplied, no zero check',
+    diffNew: ['+    if (b === 0) {', '+      throw new Error(\'Cannot divide by zero\');', '+    }', '+    return a / b;'],
+    branch: 'fix/autofix-ci-run-4829'
+  },
+  '5104': {
+    title: 'CI Run #5104 — TypeError in <code>authMiddleware.js</code>',
+    failLabel: '1 unhandled exception',
+    file: 'src/authMiddleware.js',
+    logIngest: 'Found Unhandled TypeError: Cannot read properties of undefined (reading \'bearerToken\')',
+    fixSummary: 'Synthesizing fix — optional chaining + null payload validation',
+    diffOld: '-    const token = req.headers.authorization.split(" ")[1];',
+    diffNew: ['+    const authHeader = req.headers?.authorization;', '+    if (!authHeader) return res.status(401).json({ error: "Missing token" });', '+    const token = authHeader.split(" ")[1];'],
+    branch: 'fix/autofix-ci-run-5104'
+  },
+  '6392': {
+    title: 'CI Run #6392 — Network Timeout in <code>apiClient.js</code>',
+    failLabel: '3 timeouts exceeded',
+    file: 'src/apiClient.js',
+    logIngest: 'Found AxiosError: timeout of 5000ms exceeded during webhook dispatch',
+    fixSummary: 'Synthesizing fix — exponential backoff retry policy + 15000ms timeout',
+    diffOld: '-    const res = await axios.get(url, { timeout: 5000 });',
+    diffNew: ['+    const res = await axiosRetry(url, { timeout: 15000, retries: 3, backoff: "exponential" });'],
+    branch: 'fix/autofix-ci-run-6392'
+  }
+};
+
+let currentScenarioId = '4829';
+
+function changeScenario() {
+  const sel = document.getElementById('scenarioSelector');
+  currentScenarioId = sel.value;
+  const sc = SCENARIOS[currentScenarioId];
+  document.getElementById('missionMainTitle').innerHTML = sc.title;
+  document.getElementById('failCountLabel').textContent = sc.failLabel;
+  toast('Scenario loaded', `Target: ${sc.file}`, 'info');
+}
+
+/* ── Mission execution flow ── */
+async function startMission() {
+  const sc = SCENARIOS[currentScenarioId];
+  const btn = document.getElementById('runBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span style="animation:spin 1s linear infinite;display:inline-block">◌</span>&nbsp; Running...';
+  document.getElementById('termBody').innerHTML = '';
+  document.getElementById('termStatus').textContent = `· PID ${currentScenarioId} · Active`;
+  startTimer();
+  setChip('Analyzing', 'gold');
+
+  // Step 1: Ingestion
+  setStep(1,'running'); setStateMachine(0);
+  log('[HARNESS]','harness',`Ingesting GitHub Actions CI Run #${currentScenarioId}...`);
+  await wait(800);
+  log('[HARNESS]','harness', sc.logIngest);
+  log('[HARNESS]','harness', `Target source isolated: ${sc.file}`);
+  setStep(1,'done');
+  toast('Logs analyzed', `Isolated ${sc.file}`, 'info');
+
+  // Step 2: Sandbox
+  setStep(2,'running'); setStateMachine(1); setChip('Reproducing','gold');
+  log('[SANDBOX]','sandbox','Spinning up isolated container — cwd: ./demo-repo');
+  await wait(900);
+  log('[SANDBOX]','sandbox',`$ node test/${sc.file.replace('src/','').replace('.js','.test.js')}  →  Exit code 1 ✗`);
+  log('[SANDBOX]','sandbox','Failure confirmed in isolation — safe to proceed');
+  setStep(2,'done');
+  toast('Reproduced','Failure confirmed in sandbox isolation','info');
+
+  // Step 3: Patching
+  setStep(3,'running'); setStateMachine(2); setChip('Patching','gold');
+  log('[HARNESS]','harness', sc.fixSummary);
+  await wait(1000);
+  ['d1','d2','d3','d4'].forEach(id => document.getElementById(id).style.display = '');
+  const dtag = document.getElementById('diffTag');
+  dtag.textContent = 'Patched';
+  dtag.className = 'diff-tag patched';
+  setStep(3,'done');
+  toast('Patch ready', `${sc.file} patched`, 'info');
+
+  // Step 4: Verification
+  setStep(4,'running'); setStateMachine(3); setChip('Verifying','blue');
+  log('[SANDBOX]','sandbox','Re-running full test suite against patched code...');
+  await wait(900);
+  log('[SANDBOX]','sandbox','✓  5/5 tests passed  ·  0 regressions  ·  14ms', true);
+  document.getElementById('m-sandbox').textContent   = '5 / 5';
+  document.getElementById('m-regression').textContent = '0';
+  document.getElementById('m-files').textContent     = '1 file';
+  document.getElementById('m-risk').textContent      = 'Low';
+  setStep(4,'done');
+  toast('Verified','All tests passing in sandbox','success');
+
+  // Step 5: Approval Gate
+  setStep(5,'hold'); setStateMachine(4); setChip('Awaiting approval','red');
+  document.getElementById('termStatus').textContent = `· PID ${currentScenarioId} · Holding`;
+  log('[APPROVAL]','approve','Halting — push to GitHub is irreversible. Waiting for sign-off.', true);
+  const gate = document.getElementById('approvalGate');
+  gate.style.display = 'block';
+  lucide.createIcons();
+  setTimeout(() => {
+    gate.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 100);
+}
+
+function approve() {
+  document.getElementById('approvalGate').style.display = 'none';
+  setStep(5,'done');
+  openPR();
+}
+
+function reject() {
+  document.getElementById('approvalGate').style.display = 'none';
+  log('[APPROVAL]','approve','Mission rejected by operator — halting execution.');
+  setChip('Aborted','red');
+  document.getElementById('termStatus').textContent = '· PID 4829 · Aborted';
+  const btn = document.getElementById('runBtn');
+  btn.disabled = false;
+  btn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"/></svg> Retry';
+  lucide.createIcons();
+  toast('Rejected','Mission aborted by operator','error');
+}
+
+async function openPR() {
+  setStep(6,'running'); setStateMachine(5); setChip('Completing','gold');
+  log('[HARNESS]','harness','Creating branch fix/autofix-ci-run-4829...');
+  await wait(700);
+  log('[HARNESS]','harness','Opening Pull Request on GitHub...');
+  await wait(500);
+  log('[SUCCESS]','success','PR #1 opened — /agentic_review triggered', true);
+  setStep(6,'done'); setStateMachine(6); setChip('Completed','green');
+  document.getElementById('termStatus').textContent = '· PID 4829 · Completed';
+  document.getElementById('qodoCard').style.display = 'block';
+  log('[SUCCESS]','success','Autonomous remediation complete ✓', true);
+  const btn = document.getElementById('runBtn');
+  btn.disabled = false;
+  btn.innerHTML = '<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg> Completed';
+  lucide.createIcons();
+  toast('Mission complete','PR opened, Qodo review triggered','success');
+}
+
+/* Spin keyframe */
+const style = document.createElement('style');
+style.textContent = '@keyframes spin{to{transform:rotate(360deg)}}';
+document.head.appendChild(style);
+</script>
+</body>
+</html>
