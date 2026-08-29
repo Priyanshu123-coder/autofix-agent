@@ -595,11 +595,11 @@ nav {
 .t-dot { width: 9px; height: 9px; border-radius: 50%; }
 
 .terminal-body {
-  padding: 12px;
+  padding: 10px 12px;
   font-family: var(--mono);
   font-size: 11px;
-  line-height: 1.8;
-  height: 200px;
+  line-height: 1.7;
+  height: 140px;
   overflow-y: auto;
   background: #060608;
 }
@@ -619,19 +619,21 @@ nav {
 
 /* Human Approval Gate */
 .approval-gate {
-  background: var(--surface);
-  border: 1px solid var(--red);
+  background: #181111;
+  border: 1.5px solid var(--red);
   border-radius: var(--r);
-  padding: 16px;
+  padding: 18px 20px;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 0 20px rgba(239, 68, 68, 0.15);
+  margin-bottom: 4px;
 }
 
 .approval-gate::before {
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0;
-  height: 2px;
+  height: 3px;
   background: var(--red);
 }
 
@@ -640,10 +642,10 @@ nav {
   align-items: center;
   gap: 8px;
   font-family: var(--mono);
-  font-size: 10px;
+  font-size: 11px;
   color: var(--red);
   letter-spacing: 1.5px;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   font-weight: 800;
 }
 
@@ -651,57 +653,73 @@ nav {
 @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
 
 .gate-title {
-  font-size: 16px;
-  font-weight: 800;
-  color: var(--text);
+  font-size: 17px;
+  font-weight: 900;
+  color: #fff;
   margin-bottom: 6px;
 }
 
 .gate-desc {
-  font-size: 12px;
+  font-size: 12.5px;
   color: var(--text2);
   line-height: 1.6;
-  margin-bottom: 14px;
-  max-width: 580px;
+  margin-bottom: 16px;
+  max-width: 600px;
 }
 
-.gate-desc strong { color: var(--text); font-weight: 700; }
+.gate-desc strong { color: #fff; font-weight: 700; }
 
-.gate-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.gate-actions { 
+  display: flex; 
+  gap: 12px; 
+  align-items: center; 
+  flex-wrap: wrap; 
+  padding-top: 12px;
+  border-top: 1px solid rgba(239, 68, 68, 0.2);
+}
 
 .btn-approve {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 9px 18px;
-  background: var(--green);
+  gap: 8px;
+  padding: 10px 22px;
+  background: #22c55e;
   color: #000;
-  font-size: 12px;
-  font-weight: 800;
+  font-size: 13px;
+  font-weight: 900;
   border: none;
   border-radius: var(--r);
   cursor: pointer;
-  transition: all 0.15s;
+  transition: all 0.15s ease-in-out;
+  box-shadow: 0 2px 10px rgba(34, 197, 94, 0.35);
 }
 
-.btn-approve:hover { background: #16a34a; }
+.btn-approve:hover { 
+  background: #16a34a; 
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(34, 197, 94, 0.5);
+}
 
 .btn-reject {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 14px;
-  background: transparent;
-  color: var(--text2);
-  font-size: 12px;
-  font-weight: 600;
-  border: 1px solid var(--line2);
+  gap: 8px;
+  padding: 9px 18px;
+  background: rgba(239, 68, 68, 0.1);
+  color: #fca5a5;
+  font-size: 13px;
+  font-weight: 700;
+  border: 1.5px solid rgba(239, 68, 68, 0.4);
   border-radius: var(--r);
   cursor: pointer;
   transition: all 0.15s;
 }
 
-.btn-reject:hover { color: var(--red); border-color: var(--red); }
+.btn-reject:hover { 
+  background: rgba(239, 68, 68, 0.2); 
+  color: #ef4444; 
+  border-color: #ef4444; 
+}
 
 /* Diff Viewer */
 .diff-viewer {
@@ -1593,11 +1611,14 @@ async function startMission() {
 
   // Step 5: Approval Gate
   setStep(5,'hold'); setStateMachine(4); setChip('Awaiting approval','red');
-  document.getElementById('termStatus').textContent = '· PID 4829 · Holding';
+  document.getElementById('termStatus').textContent = `· PID ${currentScenarioId} · Holding`;
   log('[APPROVAL]','approve','Halting — push to GitHub is irreversible. Waiting for sign-off.', true);
   const gate = document.getElementById('approvalGate');
   gate.style.display = 'block';
-  gate.scrollIntoView({behavior:'smooth', block:'nearest'});
+  lucide.createIcons();
+  setTimeout(() => {
+    gate.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, 100);
 }
 
 function approve() {
