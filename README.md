@@ -4,6 +4,12 @@
 > Built on the **TrueForge Agent Harness** and verified by **Qodo AI Code Review**.  
 > *Developed for The Agent Harness Hackathon (WeMakeDevs × TrueFoundry × Qodo).*
 
+[![Live Dashboard](https://img.shields.io/badge/Live_Dashboard-24%2F7_Online-success?style=for-the-badge&logo=google-chrome&logoColor=white)](https://priyanshu123-coder.github.io/autofix-agent/)
+[![GitHub Repo](https://img.shields.io/badge/GitHub-Repository-blue?style=for-the-badge&logo=github)](https://github.com/Priyanshu123-coder/autofix-agent)
+[![Qodo PR](https://img.shields.io/badge/Qodo-PR_%231_Verified-purple?style=for-the-badge&logo=git)](https://github.com/Priyanshu123-coder/autofix-agent/pull/1)
+
+🌐 **Permanent Live Demo:** **[https://priyanshu123-coder.github.io/autofix-agent/](https://priyanshu123-coder.github.io/autofix-agent/)**
+
 ---
 
 ## 🎯 Overview & Problem Statement
@@ -63,11 +69,15 @@ flowchart TD
 
 ## 🚀 Quick Start & Setup
 
-### Prerequisites
-- Node.js (v18.0.0 or higher)
-- Git
+### 🌐 1. Try the 24/7 Live Cloud Dashboard
+Access the deployed Mission Control studio directly in your browser:  
+👉 **[https://priyanshu123-coder.github.io/autofix-agent/](https://priyanshu123-coder.github.io/autofix-agent/)**
 
-### 1. Clone Repository
+---
+
+### 💻 2. Run Locally (Prerequisites: Node.js v18+)
+
+#### A. Clone Repository
 ```bash
 git clone https://github.com/Priyanshu123-coder/autofix-agent.git
 cd autofix-agent
