@@ -1,571 +1,805 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark h-full">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AutoFix-Agent | TrueForge & Qodo Agentic Studio</title>
+  <title>AutoFix-Agent — CI/CD Failure Auto-Remediation & Governance Studio</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS & Lucide Icons -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <script src="https://unpkg.com/lucide@latest"></script>
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Geist', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+            mono: ['Geist Mono', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
+          },
+          colors: {
+            background: '#09090B',
+            surface: {
+              DEFAULT: '#111113',
+              secondary: '#18181B',
+              tertiary: '#202024',
+              hover: '#27272A',
+            },
+            border: {
+              DEFAULT: '#27272A',
+              subtle: '#1F1F23',
+              active: '#3F3F46',
+            },
+            foreground: {
+              DEFAULT: '#F4F4F5',
+              secondary: '#A1A1AA',
+              muted: '#71717A',
+            },
+            status: {
+              success: '#22C55E',
+              'success-bg': 'rgba(34, 197, 94, 0.08)',
+              'success-border': 'rgba(34, 197, 94, 0.25)',
+              warning: '#F59E0B',
+              'warning-bg': 'rgba(245, 158, 11, 0.08)',
+              'warning-border': 'rgba(245, 158, 11, 0.25)',
+              error: '#EF4444',
+              'error-bg': 'rgba(239, 68, 68, 0.08)',
+              'error-border': 'rgba(239, 68, 68, 0.25)',
+              info: '#3B82F6',
+              'info-bg': 'rgba(59, 130, 246, 0.08)',
+              'info-border': 'rgba(59, 130, 246, 0.25)',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
   <style>
-    @keyframes pulse-glow {
-      0%, 100% { border-color: rgba(59, 130, 246, 0.9); box-shadow: 0 0 25px rgba(59, 130, 246, 0.45); }
-      50% { border-color: rgba(168, 85, 247, 0.6); box-shadow: 0 0 15px rgba(168, 85, 247, 0.25); }
+    /* Technical scrollbars */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #27272A; border-radius: 2px; }
+    ::-webkit-scrollbar-thumb:hover { background: #3F3F46; }
+
+    /* Timeline connectors */
+    .timeline-line::before {
+      content: '';
+      position: absolute;
+      left: 11px;
+      top: 24px;
+      bottom: -16px;
+      width: 1px;
+      background: #27272A;
     }
-    @keyframes scanline {
-      0% { transform: translateY(-100%); }
-      100% { transform: translateY(1000%); }
+    .timeline-item:last-child .timeline-line::before {
+      display: none;
     }
-    .active-pipeline {
-      animation: pulse-glow 2s infinite ease-in-out;
-      background: rgba(30, 41, 59, 0.95) !important;
+
+    /* Subtle active indicator */
+    .nav-active {
+      background-color: #18181B;
+      color: #F4F4F5 !important;
+      font-weight: 500;
     }
-    .glass-panel {
-      background: rgba(13, 20, 36, 0.75);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid rgba(51, 65, 85, 0.65);
-    }
-    .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
-    .custom-scrollbar::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.4); }
-    .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(71, 85, 105, 0.8); border-radius: 4px; }
-    .neon-text-blue { text-shadow: 0 0 12px rgba(59, 130, 246, 0.6); }
-    .neon-text-purple { text-shadow: 0 0 12px rgba(168, 85, 247, 0.6); }
-    .tab-active {
-      border-bottom: 2px solid #3b82f6;
-      color: #93c5fd !important;
-      background: rgba(59, 130, 246, 0.08);
+    .nav-active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 6px;
+      bottom: 6px;
+      width: 2px;
+      background-color: #3B82F6;
+      border-radius: 0 2px 2px 0;
     }
   </style>
 </head>
-<body class="bg-[#050811] text-slate-100 font-sans min-h-screen flex flex-col antialiased selection:bg-blue-600 selection:text-white">
 
-  <!-- Top Enterprise Navigation -->
-  <header class="border-b border-slate-800/80 bg-slate-950/80 backdrop-blur sticky top-0 z-50 px-6 lg:px-10 py-3.5 flex items-center justify-between">
-    <div class="flex items-center space-x-4">
-      <div class="h-11 w-11 rounded-2xl bg-gradient-to-tr from-blue-600 via-indigo-500 to-cyan-400 flex items-center justify-center shadow-xl shadow-blue-500/30 ring-1 ring-white/25">
-        <i class="fa-solid fa-microchip text-white text-xl"></i>
-      </div>
-      <div>
+<body class="bg-background text-foreground flex h-screen overflow-hidden antialiased text-[13px] leading-normal selection:bg-surface-hover selection:text-white">
+
+  <!-- ========================================================================= -->
+  <!-- 1. APPLICATION SIDEBAR (Linear / Datadog Style) -->
+  <!-- ========================================================================= -->
+  <aside class="w-60 bg-surface border-r border-border flex flex-col justify-between select-none z-30 shrink-0">
+    <!-- Brand / Workspace Switcher -->
+    <div>
+      <div class="h-14 px-4 border-b border-border flex items-center justify-between">
         <div class="flex items-center gap-2.5">
-          <h1 class="text-lg font-black tracking-tight bg-gradient-to-r from-blue-400 via-indigo-200 to-teal-300 bg-clip-text text-transparent">AutoFix-Agent</h1>
-          <span class="px-2.5 py-0.5 text-[10px] font-mono bg-blue-500/15 border border-blue-400/40 text-blue-300 rounded-full font-bold">TrueForge v2 Core</span>
-          <span class="px-2.5 py-0.5 text-[10px] font-mono bg-purple-500/15 border border-purple-400/40 text-purple-300 rounded-full font-bold">Qodo Verified</span>
-        </div>
-        <p class="text-[11px] text-slate-400 font-medium">Autonomous CI/CD Failure Auto-Remediation & Governance Studio</p>
-      </div>
-    </div>
-
-    <!-- Navigation Tabs -->
-    <nav class="hidden md:flex items-center space-x-1 border border-slate-800 rounded-xl p-1 bg-slate-900/60 text-xs font-semibold text-slate-400">
-      <button onclick="switchTab('studio')" id="tabBtn-studio" class="px-3.5 py-1.5 rounded-lg transition tab-active flex items-center gap-2">
-        <i class="fa-solid fa-play"></i> Remediation Studio
-      </button>
-      <button onclick="switchTab('subagents')" id="tabBtn-subagents" class="px-3.5 py-1.5 rounded-lg transition hover:text-slate-200 flex items-center gap-2">
-        <i class="fa-solid fa-network-wired"></i> Subagent Mesh
-      </button>
-      <button onclick="switchTab('mcp')" id="tabBtn-mcp" class="px-3.5 py-1.5 rounded-lg transition hover:text-slate-200 flex items-center gap-2">
-        <i class="fa-solid fa-plug"></i> MCP Tools
-      </button>
-      <button onclick="switchTab('qodo')" id="tabBtn-qodo" class="px-3.5 py-1.5 rounded-lg transition hover:text-slate-200 flex items-center gap-2">
-        <i class="fa-solid fa-award"></i> Qodo Health
-      </button>
-    </nav>
-
-    <!-- Quick External Links -->
-    <div class="flex items-center space-x-3">
-      <button onclick="toggleAudio()" id="audioBtn" class="px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-xs text-slate-400 hover:text-slate-200 transition" title="Toggle Sound Effects">
-        <i class="fa-solid fa-volume-high" id="audioIcon"></i>
-      </button>
-      <a href="https://github.com/Priyanshu123-coder/autofix-agent" target="_blank" class="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-slate-200 rounded-xl text-xs font-semibold transition flex items-center gap-2 border border-slate-700 shadow-sm">
-        <i class="fa-brands fa-github text-sm"></i> Repo
-      </a>
-      <a href="https://github.com/Priyanshu123-coder/autofix-agent/pull/1" target="_blank" class="px-3.5 py-1.5 bg-gradient-to-r from-purple-900/60 to-indigo-900/60 hover:from-purple-800/60 hover:to-indigo-800/60 text-purple-200 rounded-xl text-xs font-bold transition flex items-center gap-2 border border-purple-500/30 shadow-lg shadow-purple-900/20">
-        <i class="fa-solid fa-code-pull-request"></i> PR #1 Review
-      </a>
-    </div>
-  </header>
-
-  <!-- Telemetry Overview Ribbons -->
-  <section class="max-w-[1600px] mx-auto px-6 pt-6 w-full grid grid-cols-2 sm:grid-cols-5 gap-4">
-    <div class="glass-panel rounded-2xl p-4">
-      <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
-        <span>Incident Target</span>
-        <i class="fa-solid fa-bolt text-yellow-400"></i>
-      </div>
-      <div class="text-xl font-black text-white font-mono">CI Run #4829</div>
-      <div class="text-[10px] text-rose-400 mt-1 font-mono">FAIL: Jest Assert 20 !== 5</div>
-    </div>
-
-    <div class="glass-panel rounded-2xl p-4">
-      <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
-        <span>Remediation MTTR</span>
-        <i class="fa-solid fa-gauge-high text-cyan-400"></i>
-      </div>
-      <div class="text-xl font-black text-white font-mono">38.2s</div>
-      <div class="text-[10px] text-emerald-400 mt-1">96% faster than manual debug</div>
-    </div>
-
-    <div class="glass-panel rounded-2xl p-4">
-      <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
-        <span>TrueForge Sandbox</span>
-        <i class="fa-solid fa-cube text-blue-400"></i>
-      </div>
-      <div class="text-xl font-black text-white font-mono">Isolated</div>
-      <div class="text-[10px] text-blue-300 mt-1">Zero host system side effects</div>
-    </div>
-
-    <div class="glass-panel rounded-2xl p-4">
-      <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
-        <span>Safety & Governance</span>
-        <i class="fa-solid fa-shield-halved text-purple-400"></i>
-      </div>
-      <div class="text-xl font-black text-white font-mono">Enforced</div>
-      <div class="text-[10px] text-purple-300 mt-1">Human approval gate active</div>
-    </div>
-
-    <div class="glass-panel rounded-2xl p-4 col-span-2 sm:col-span-1">
-      <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
-        <span>Qodo Quality Score</span>
-        <i class="fa-solid fa-award text-emerald-400"></i>
-      </div>
-      <div class="text-xl font-black text-emerald-400 font-mono">Grade A+</div>
-      <div class="text-[10px] text-slate-400 mt-1">100% Tests • 0 High Vulnerabilities</div>
-    </div>
-  </section>
-
-  <!-- Tab 1: Studio View -->
-  <main id="view-studio" class="max-w-[1600px] mx-auto px-6 py-6 flex-1 w-full space-y-6">
-    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-      
-      <!-- Left Panel: Trigger & Execution Stepper (4 Cols) -->
-      <div class="lg:col-span-4 space-y-6">
-        
-        <!-- Incident Simulator Card -->
-        <div class="glass-panel rounded-2xl p-6 shadow-xl relative overflow-hidden">
-          <div class="absolute -right-8 -bottom-8 w-32 h-32 bg-blue-500/10 rounded-full blur-2xl"></div>
-          <div class="flex items-center justify-between mb-3">
-            <h2 class="text-xs font-bold uppercase tracking-wider text-slate-200 flex items-center gap-2">
-              <i class="fa-solid fa-terminal text-blue-400"></i> Incident Dispatcher
-            </h2>
-            <span class="text-[10px] font-mono bg-rose-500/15 text-rose-300 border border-rose-500/30 px-2 py-0.5 rounded font-bold">
-              FAIL DETECTED
-            </span>
+          <div class="h-6 w-6 rounded bg-foreground text-background flex items-center justify-center font-bold font-mono text-[11px] shadow-sm">
+            AF
           </div>
-          <p class="text-xs text-slate-400 mb-4 leading-relaxed">
-            Execute the TrueForge multi-agent loop: Ingest CI logs $\rightarrow$ Reproduce in Sandbox $\rightarrow$ Synthesize Patch $\rightarrow$ Halt at Governance Gate $\rightarrow$ Dispatch Qodo PR.
-          </p>
-
-          <button id="startBtn" onclick="startRemediation()" class="w-full py-3.5 px-6 rounded-xl font-extrabold bg-gradient-to-r from-blue-600 via-indigo-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white shadow-xl shadow-blue-500/25 transition transform active:scale-95 flex items-center justify-center gap-2.5 text-sm cursor-pointer">
-            <i class="fa-solid fa-play"></i> Run Autonomous Auto-Remediation
-          </button>
-        </div>
-
-        <!-- Multi-Step State Stepper -->
-        <div class="glass-panel rounded-2xl p-6 shadow-xl space-y-3">
-          <div class="flex items-center justify-between mb-2">
-            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-300">TrueForge Harness Execution Graph</h3>
-            <span id="harnessBadge" class="text-[10px] font-mono text-slate-400 bg-slate-800/80 px-2 py-0.5 rounded border border-slate-700 font-bold">STANDBY</span>
-          </div>
-
-          <div id="step-1" class="p-3 rounded-xl border border-slate-800/80 bg-slate-950/40 transition flex items-center gap-3">
-            <div class="h-6 w-6 rounded-lg bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-400 step-icon font-mono">1</div>
-            <div class="flex-1">
-              <div class="text-xs font-semibold text-slate-200">Log Ingestion & Diagnosis</div>
-              <div class="text-[11px] text-slate-500">Extracts error assertion & target module</div>
-            </div>
-          </div>
-
-          <div id="step-2" class="p-3 rounded-xl border border-slate-800/80 bg-slate-950/40 transition flex items-center gap-3">
-            <div class="h-6 w-6 rounded-lg bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-400 step-icon font-mono">2</div>
-            <div class="flex-1">
-              <div class="text-xs font-semibold text-slate-200">Sandbox Reproduction</div>
-              <div class="text-[11px] text-slate-500">Confirms test failure in isolated container</div>
-            </div>
-          </div>
-
-          <div id="step-3" class="p-3 rounded-xl border border-slate-800/80 bg-slate-950/40 transition flex items-center gap-3">
-            <div class="h-6 w-6 rounded-lg bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-400 step-icon font-mono">3</div>
-            <div class="flex-1">
-              <div class="text-xs font-semibold text-slate-200">LLM Patch Synthesis</div>
-              <div class="text-[11px] text-slate-500">Generates division & zero guard patch</div>
-            </div>
-          </div>
-
-          <div id="step-4" class="p-3 rounded-xl border border-slate-800/80 bg-slate-950/40 transition flex items-center gap-3">
-            <div class="h-6 w-6 rounded-lg bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-400 step-icon font-mono">4</div>
-            <div class="flex-1">
-              <div class="text-xs font-semibold text-slate-200">Sandbox Verification</div>
-              <div class="text-[11px] text-slate-500">Re-runs test suite; 5/5 passing (0 regressions)</div>
-            </div>
-          </div>
-
-          <div id="step-5" class="p-3 rounded-xl border border-slate-800/80 bg-slate-950/40 transition flex items-center gap-3">
-            <div class="h-6 w-6 rounded-lg bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-400 step-icon font-mono">5</div>
-            <div class="flex-1">
-              <div class="text-xs font-semibold text-slate-200">Human Approval Gate</div>
-              <div class="text-[11px] text-slate-500">TrueForge pauses for operator sign-off</div>
-            </div>
-          </div>
-
-          <div id="step-6" class="p-3 rounded-xl border border-slate-800/80 bg-slate-950/40 transition flex items-center gap-3">
-            <div class="h-6 w-6 rounded-lg bg-slate-800 flex items-center justify-center text-xs font-bold text-slate-400 step-icon font-mono">6</div>
-            <div class="flex-1">
-              <div class="text-xs font-semibold text-slate-200">Qodo PR Review Dispatch</div>
-              <div class="text-[11px] text-slate-500">Pushes branch & triggers /agentic_review</div>
+          <div>
+            <div class="text-[13px] font-semibold tracking-tight text-foreground flex items-center gap-1.5">
+              AutoFix
+              <span class="text-[10px] font-mono text-foreground-muted px-1.5 py-0.2 rounded bg-surface-secondary border border-border">v2.1</span>
             </div>
           </div>
         </div>
+        <button class="text-foreground-muted hover:text-foreground p-1 rounded hover:bg-surface-secondary transition">
+          <i data-lucide="chevrons-up-down" class="w-3.5 h-3.5"></i>
+        </button>
       </div>
 
-      <!-- Right Panel: Live Logs, Diff Viewer & Governance Modal (8 Cols) -->
-      <div class="lg:col-span-8 space-y-6">
-        
-        <!-- Live Terminal Streamer -->
-        <div class="glass-panel rounded-2xl shadow-2xl overflow-hidden">
-          <div class="bg-slate-950/90 px-4 py-3 border-b border-slate-800 flex items-center justify-between">
-            <div class="flex items-center space-x-2">
-              <div class="h-3 w-3 rounded-full bg-rose-500/80"></div>
-              <div class="h-3 w-3 rounded-full bg-yellow-500/80"></div>
-              <div class="h-3 w-3 rounded-full bg-emerald-500/80"></div>
-              <span class="text-xs font-mono text-slate-400 ml-2">trueforge://runtime-stream:4829</span>
-            </div>
-            <span id="spinner" class="hidden text-xs text-blue-400 flex items-center gap-1.5 font-mono">
-              <i class="fa-solid fa-circle-notch fa-spin"></i> Harness Executing...
-            </span>
-          </div>
-          <div id="terminal" class="p-5 font-mono text-xs text-slate-300 h-64 overflow-y-auto space-y-1.5 bg-slate-950/95 leading-relaxed custom-scrollbar">
-            <div class="text-slate-500">[TrueForge] System initialized on Node v24. Ready for auto-remediation.</div>
-          </div>
-        </div>
+      <!-- Navigation Links -->
+      <nav class="p-2 space-y-0.5 font-normal text-foreground-secondary">
+        <button onclick="switchView('incidents')" id="nav-incidents" class="relative w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded text-left transition nav-active">
+          <i data-lucide="alert-octagon" class="w-4 h-4 text-status-error"></i>
+          <span>Active Incident</span>
+          <span class="ml-auto font-mono text-[10px] bg-status-error-bg text-status-error border border-status-error-border px-1.5 py-0.5 rounded">#4829</span>
+        </button>
 
-        <!-- Human-in-the-Loop Governance Modal -->
-        <div id="approvalCard" class="hidden glass-panel rounded-2xl p-6 border border-purple-500/50 bg-gradient-to-r from-purple-950/80 via-indigo-950/70 to-slate-950/80 shadow-2xl">
-          <div class="flex items-start justify-between">
-            <div class="flex items-center gap-3.5">
-              <div class="h-11 w-11 rounded-xl bg-purple-600/30 border border-purple-400/40 flex items-center justify-center text-purple-300 shadow-lg">
-                <i class="fa-solid fa-user-shield text-xl"></i>
-              </div>
-              <div>
-                <h3 class="text-sm font-bold text-white">TrueForge Governance Gate: Operator Approval Required</h3>
-                <p class="text-xs text-purple-200/80 mt-0.5">Synthesized patch verified in sandbox with 0 regressions. Authorize remote git branch push?</p>
-              </div>
-            </div>
-            <span class="px-2.5 py-0.5 bg-purple-500/20 text-purple-300 text-[10px] font-mono rounded border border-purple-400/30 font-bold">SAFETY GATE</span>
-          </div>
+        <button onclick="switchView('runs')" id="nav-runs" class="relative w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded text-left transition hover:bg-surface-secondary hover:text-foreground">
+          <i data-lucide="history" class="w-4 h-4 text-foreground-muted"></i>
+          <span>Remediation Runs</span>
+        </button>
 
-          <div class="flex items-center gap-3 justify-end mt-5 pt-3 border-t border-purple-500/20">
-            <button onclick="rejectApproval()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-semibold transition">
-              Reject Action
-            </button>
-            <button onclick="grantApproval()" class="px-5 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white rounded-lg text-xs font-bold transition shadow-lg shadow-emerald-600/30 flex items-center gap-2">
-              <i class="fa-solid fa-check"></i> Approve & Push Pull Request
-            </button>
-          </div>
-        </div>
+        <button onclick="switchView('subagents')" id="nav-subagents" class="relative w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded text-left transition hover:bg-surface-secondary hover:text-foreground">
+          <i data-lucide="cpu" class="w-4 h-4 text-foreground-muted"></i>
+          <span>Subagent Mesh</span>
+          <span class="ml-auto font-mono text-[10px] text-foreground-muted">3 active</span>
+        </button>
 
-        <!-- Live Code Diff Viewer -->
-        <div class="glass-panel rounded-2xl p-5 shadow-xl">
-          <div class="flex items-center justify-between mb-3">
-            <div class="flex items-center gap-2 text-xs font-bold text-slate-200">
-              <i class="fa-solid fa-code-compare text-blue-400"></i>
-              <span>Synthesized Code Patch (<code class="text-blue-300 font-mono text-[11px]">src/calculator.js</code>)</span>
-            </div>
-            <span id="diffBadge" class="text-[11px] text-slate-500 font-mono">Awaiting patch synthesis...</span>
-          </div>
+        <button onclick="switchView('mcp')" id="nav-mcp" class="relative w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded text-left transition hover:bg-surface-secondary hover:text-foreground">
+          <i data-lucide="plug" class="w-4 h-4 text-foreground-muted"></i>
+          <span>MCP Tool Registry</span>
+        </button>
 
-          <div class="bg-slate-950 rounded-xl border border-slate-800 p-4 font-mono text-xs overflow-x-auto space-y-1">
-            <div class="text-slate-500">// src/calculator.js</div>
-            <div class="text-slate-400"> class Calculator {</div>
-            <div class="text-slate-400">   divide(a, b) {</div>
-            <div id="diffOld" class="text-rose-400 bg-rose-950/40 px-2 py-0.5 rounded border border-rose-900/50">-    return a * b; // BUG: multiplies instead of divides</div>
-            <div id="diffNew" class="text-emerald-400 bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-900/50 hidden">+    if (b === 0) throw new Error("Cannot divide by zero");<br>+    return a / b;</div>
-            <div class="text-slate-400">   }</div>
-            <div class="text-slate-400"> }</div>
-          </div>
-        </div>
+        <button onclick="switchView('governance')" id="nav-governance" class="relative w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded text-left transition hover:bg-surface-secondary hover:text-foreground">
+          <i data-lucide="shield-check" class="w-4 h-4 text-foreground-muted"></i>
+          <span>Governance Gates</span>
+        </button>
 
-        <!-- Qodo Review Evidence Card -->
-        <div id="prResultCard" class="hidden glass-panel rounded-2xl p-5 border border-emerald-500/30 shadow-xl">
-          <div class="flex items-center justify-between mb-3">
-            <div class="flex items-center gap-3">
-              <div class="h-8 w-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
-                <i class="fa-solid fa-code-pull-request"></i>
-              </div>
-              <div>
-                <h3 class="text-xs font-bold text-white">Pull Request #1 Verified by Qodo</h3>
-                <a href="https://github.com/Priyanshu123-coder/autofix-agent/pull/1" target="_blank" class="text-[11px] text-blue-400 hover:underline flex items-center gap-1">
-                  github.com/Priyanshu123-coder/autofix-agent/pull/1 <i class="fa-solid fa-external-link text-[9px]"></i>
-                </a>
-              </div>
-            </div>
-            <span class="px-2.5 py-0.5 bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] rounded font-bold font-mono">MERGED</span>
-          </div>
-          <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-[11px] text-slate-300 font-mono space-y-1">
-            <div class="text-purple-400">> @qodo-merge-bot /agentic_review</div>
-            <div class="text-emerald-400">✓ Code Review Completed: 0 High Issues • 100% Sandbox Test Pass Rate</div>
-          </div>
-        </div>
+        <button onclick="switchView('audit')" id="nav-audit" class="relative w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded text-left transition hover:bg-surface-secondary hover:text-foreground">
+          <i data-lucide="scroll-text" class="w-4 h-4 text-foreground-muted"></i>
+          <span>Audit & SQLite Store</span>
+        </button>
+      </nav>
+    </div>
 
+    <!-- Sidebar Footer: Environment & User -->
+    <div class="p-3 border-t border-border space-y-2 bg-surface">
+      <div class="flex items-center justify-between text-[11px] text-foreground-muted px-1">
+        <span class="flex items-center gap-1.5">
+          <span class="h-1.5 w-1.5 rounded-full bg-status-success"></span>
+          TrueForge Harness
+        </span>
+        <span class="font-mono text-[10px] text-foreground-secondary">Online</span>
       </div>
 
-    </div>
-  </main>
-
-  <!-- Tab 2: Subagent Mesh View -->
-  <main id="view-subagents" class="hidden max-w-[1600px] mx-auto px-6 py-6 flex-1 w-full space-y-6">
-    <div class="glass-panel rounded-2xl p-6">
-      <h2 class="text-base font-bold text-white mb-2 flex items-center gap-2">
-        <i class="fa-solid fa-network-wired text-blue-400"></i> TrueForge Subagent Mesh Architecture
-      </h2>
-      <p class="text-xs text-slate-400 mb-6">Visual topology of autonomous subagents orchestrated by the TrueForge agent harness.</p>
-
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-5 space-y-3">
-          <div class="flex items-center gap-3">
-            <div class="h-8 w-8 rounded-lg bg-blue-600/20 text-blue-400 flex items-center justify-center font-bold">1</div>
-            <div>
-              <h3 class="text-sm font-bold text-slate-200">Diagnostic Subagent</h3>
-              <p class="text-[10px] text-slate-500 font-mono">src/agent/subagents.ts</p>
-            </div>
+      <div class="pt-2 border-t border-border flex items-center justify-between px-1">
+        <div class="flex items-center gap-2">
+          <div class="h-6 w-6 rounded-full bg-surface-secondary border border-border flex items-center justify-center text-[10px] font-semibold">
+            PS
           </div>
-          <p class="text-xs text-slate-400">Specializes in AST parsing, failure log ingestion, and root-cause localization.</p>
-          <span class="inline-block px-2 py-0.5 text-[10px] bg-blue-500/10 text-blue-400 rounded border border-blue-500/20 font-mono">Role: Log Ingest & Triage</span>
+          <div class="truncate text-[12px] text-foreground">Priyanshu Singh</div>
         </div>
-
-        <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-5 space-y-3">
-          <div class="flex items-center gap-3">
-            <div class="h-8 w-8 rounded-lg bg-emerald-600/20 text-emerald-400 flex items-center justify-center font-bold">2</div>
-            <div>
-              <h3 class="text-sm font-bold text-slate-200">Verification Subagent</h3>
-              <p class="text-[10px] text-slate-500 font-mono">src/agent/subagents.ts</p>
-            </div>
-          </div>
-          <p class="text-xs text-slate-400">Runs multi-pass regression testing in isolated sandbox containers before git actions.</p>
-          <span class="inline-block px-2 py-0.5 text-[10px] bg-emerald-500/10 text-emerald-400 rounded border border-emerald-500/20 font-mono">Role: Sandbox Isolation</span>
-        </div>
-
-        <div class="bg-slate-950/80 border border-slate-800 rounded-xl p-5 space-y-3">
-          <div class="flex items-center gap-3">
-            <div class="h-8 w-8 rounded-lg bg-purple-600/20 text-purple-400 flex items-center justify-center font-bold">3</div>
-            <div>
-              <h3 class="text-sm font-bold text-slate-200">Qodo Dispatch Subagent</h3>
-              <p class="text-[10px] text-slate-500 font-mono">src/github/pr_manager.ts</p>
-            </div>
-          </div>
-          <p class="text-xs text-slate-400">Prepares semantic PR bodies and triggers @qodo-merge-bot AI code reviews.</p>
-          <span class="inline-block px-2 py-0.5 text-[10px] bg-purple-500/10 text-purple-400 rounded border border-purple-500/20 font-mono">Role: GitHub & Qodo PRs</span>
-        </div>
+        <button class="text-foreground-muted hover:text-foreground" title="Settings">
+          <i data-lucide="settings" class="w-3.5 h-3.5"></i>
+        </button>
       </div>
     </div>
-  </main>
+  </aside>
 
-  <!-- Tab 3: MCP Tools View -->
-  <main id="view-mcp" class="hidden max-w-[1600px] mx-auto px-6 py-6 flex-1 w-full space-y-6">
-    <div class="glass-panel rounded-2xl p-6">
-      <h2 class="text-base font-bold text-white mb-2 flex items-center gap-2">
-        <i class="fa-solid fa-plug text-cyan-400"></i> Model Context Protocol (MCP) Schemas
-      </h2>
-      <p class="text-xs text-slate-400 mb-6">Standardized tool contracts exposed for TrueForge agent discovery and sandboxed invocation.</p>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 font-mono text-xs space-y-2">
-          <div class="text-cyan-400 font-bold">tool: github_fetch_ci_logs</div>
-          <div class="text-slate-400">Fetches structured CI/CD failure logs for a given GitHub Actions workflow run ID.</div>
-          <div class="text-[11px] text-slate-500">params: { runId: string, repo?: string }</div>
-        </div>
-
-        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 font-mono text-xs space-y-2">
-          <div class="text-emerald-400 font-bold">tool: sandbox_reproduce_test</div>
-          <div class="text-slate-400">Executes a test script inside an isolated sandbox container to confirm failures.</div>
-          <div class="text-[11px] text-slate-500">params: { testPath: string, timeoutMs: number }</div>
-        </div>
-
-        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 font-mono text-xs space-y-2">
-          <div class="text-blue-400 font-bold">tool: sandbox_apply_patch</div>
-          <div class="text-slate-400">Applies a code modification to a target source file in the isolated sandbox.</div>
-          <div class="text-[11px] text-slate-500">params: { filePath: string, content: string }</div>
-        </div>
-
-        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 font-mono text-xs space-y-2">
-          <div class="text-purple-400 font-bold">tool: governance_request_human_approval</div>
-          <div class="text-slate-400">Triggers TrueForge human-in-the-loop approval gate before remote git push.</div>
-          <div class="text-[11px] text-slate-500">params: { action: string, diff: string }</div>
-        </div>
+  <!-- ========================================================================= -->
+  <!-- 2. MAIN APPLICATION SHELL -->
+  <!-- ========================================================================= -->
+  <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+    
+    <!-- Top Header Bar -->
+    <header class="h-14 border-b border-border bg-surface px-6 flex items-center justify-between shrink-0">
+      <!-- Breadcrumbs -->
+      <div class="flex items-center gap-2 text-[12px]">
+        <span class="text-foreground-muted hover:text-foreground cursor-pointer">AutoFix</span>
+        <span class="text-foreground-muted">/</span>
+        <span class="text-foreground-muted">Remediations</span>
+        <span class="text-foreground-muted">/</span>
+        <span class="font-mono text-foreground bg-surface-secondary px-1.5 py-0.5 rounded border border-border">CI Run #4829</span>
       </div>
-    </div>
-  </main>
 
-  <!-- Tab 4: Qodo Health View -->
-  <main id="view-qodo" class="hidden max-w-[1600px] mx-auto px-6 py-6 flex-1 w-full space-y-6">
-    <div class="glass-panel rounded-2xl p-6">
-      <div class="flex items-center justify-between mb-4">
-        <div>
-          <h2 class="text-base font-bold text-white flex items-center gap-2">
-            <i class="fa-solid fa-award text-purple-400"></i> Qodo AI Code Review Matrix
-          </h2>
-          <p class="text-xs text-slate-400">Quality and vulnerability scores generated from automated PR reviews.</p>
+      <!-- Action Items -->
+      <div class="flex items-center gap-3">
+        <div class="flex items-center gap-1.5 text-[11px] text-foreground-muted bg-surface-secondary px-2 py-1 rounded border border-border">
+          <i data-lucide="git-branch" class="w-3.5 h-3.5 text-foreground-secondary"></i>
+          <span class="font-mono">main</span>
         </div>
-        <a href="https://github.com/Priyanshu123-coder/autofix-agent/pull/1" target="_blank" class="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold transition flex items-center gap-2">
-          <i class="fa-solid fa-external-link"></i> View PR #1 on GitHub
+
+        <a href="https://github.com/Priyanshu123-coder/autofix-agent" target="_blank" class="px-2.5 py-1 text-[12px] text-foreground-secondary hover:text-foreground border border-border rounded bg-surface hover:bg-surface-secondary transition flex items-center gap-1.5">
+          <i data-lucide="github" class="w-3.5 h-3.5"></i>
+          <span>Repository</span>
+        </a>
+
+        <a href="https://github.com/Priyanshu123-coder/autofix-agent/pull/1" target="_blank" class="px-3 py-1 text-[12px] font-medium text-purple-300 border border-purple-500/30 rounded bg-purple-950/40 hover:bg-purple-900/40 transition flex items-center gap-1.5">
+          <i data-lucide="git-pull-request" class="w-3.5 h-3.5 text-purple-400"></i>
+          <span>Qodo PR #1</span>
+          <span class="h-1.5 w-1.5 rounded-full bg-purple-400"></span>
         </a>
       </div>
+    </header>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="bg-slate-950 p-5 rounded-xl border border-slate-800 space-y-2">
-          <div class="text-xs text-slate-400">Security & Vulnerabilities</div>
-          <div class="text-2xl font-bold text-emerald-400 font-mono">0 CVEs / 0 High</div>
-          <div class="text-[11px] text-slate-500">Zero unhandled exceptions or leaks</div>
+    <!-- Content Workspace -->
+    <main class="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-6">
+      
+      <!-- ===================================================================== -->
+      <!-- VIEW 1: ACTIVE INCIDENT WORKSPACE -->
+      <!-- ===================================================================== -->
+      <div id="view-container-incidents" class="space-y-6 max-w-7xl mx-auto">
+        
+        <!-- Incident Master Header -->
+        <div class="bg-surface border border-border rounded-lg p-5">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div class="space-y-1.5">
+              <div class="flex items-center gap-2.5">
+                <span class="px-2 py-0.5 text-[11px] font-mono font-medium rounded bg-status-error-bg text-status-error border border-status-error-border flex items-center gap-1.5">
+                  <span class="h-1.5 w-1.5 rounded-full bg-status-error animate-pulse"></span>
+                  FAILED
+                </span>
+                <h1 class="text-base font-semibold text-foreground tracking-tight">
+                  CI Run #4829 — Jest Assertion Error in <code class="font-mono text-[13px] text-blue-400">calculator.test.js</code>
+                </h1>
+              </div>
+              <div class="flex flex-wrap items-center gap-x-4 gap-y-1 text-[12px] text-foreground-muted font-mono">
+                <span>Target: <span class="text-foreground-secondary">Priyanshu123-coder/autofix-agent</span></span>
+                <span>•</span>
+                <span>Branch: <span class="text-foreground-secondary">main</span></span>
+                <span>•</span>
+                <span>Commit: <span class="text-foreground-secondary">fcbc661</span></span>
+                <span>•</span>
+                <span>Failed step: <span class="text-status-error">test/calculator.test.js (2 failing)</span></span>
+              </div>
+            </div>
+
+            <!-- Trigger Button -->
+            <div class="flex items-center gap-2.5 shrink-0">
+              <button id="remediateBtn" onclick="runAutoRemediation()" class="px-4 py-2 bg-foreground text-background font-medium rounded text-[12px] hover:bg-white transition flex items-center gap-2 shadow-sm active:scale-98">
+                <i data-lucide="play" class="w-3.5 h-3.5 fill-current"></i>
+                <span>Run Auto-Remediation</span>
+              </button>
+            </div>
+          </div>
         </div>
 
-        <div class="bg-slate-950 p-5 rounded-xl border border-slate-800 space-y-2">
-          <div class="text-xs text-slate-400">Sandbox Test Coverage</div>
-          <div class="text-2xl font-bold text-blue-400 font-mono">100.0%</div>
-          <div class="text-[11px] text-slate-500">All 5 unit tests passing cleanly</div>
+        <!-- 2-Column Work Engine: Left (Timeline & Signals), Right (Logs, Diff & Approval) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          
+          <!-- LEFT COLUMN: Execution Timeline & Engineering Signals (4 Cols) -->
+          <div class="lg:col-span-4 space-y-6">
+            
+            <!-- Execution Timeline -->
+            <div class="bg-surface border border-border rounded-lg p-4 space-y-3">
+              <div class="flex items-center justify-between pb-2 border-b border-border">
+                <span class="text-[12px] font-semibold text-foreground">Remediation Timeline</span>
+                <span id="harnessStateLabel" class="text-[10px] font-mono text-foreground-muted bg-surface-secondary px-1.5 py-0.5 rounded border border-border">STANDBY</span>
+              </div>
+
+              <div class="space-y-4 pt-1 font-mono text-[11px]">
+                <!-- Step 1 -->
+                <div class="relative flex items-start gap-3 timeline-item" id="stage-1">
+                  <div class="timeline-line"></div>
+                  <div class="h-6 w-6 rounded bg-surface-secondary border border-border flex items-center justify-center shrink-0 text-foreground-muted text-[10px] stage-icon">1</div>
+                  <div class="space-y-0.5">
+                    <div class="text-[12px] font-sans font-medium text-foreground-secondary stage-title">Log Parsing & Ingestion</div>
+                    <div class="text-foreground-muted text-[11px] font-sans stage-desc">Extract stack trace & target assertion</div>
+                    <div class="text-[10px] text-foreground-muted stage-time">--:--:--</div>
+                  </div>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="relative flex items-start gap-3 timeline-item" id="stage-2">
+                  <div class="timeline-line"></div>
+                  <div class="h-6 w-6 rounded bg-surface-secondary border border-border flex items-center justify-center shrink-0 text-foreground-muted text-[10px] stage-icon">2</div>
+                  <div class="space-y-0.5">
+                    <div class="text-[12px] font-sans font-medium text-foreground-secondary stage-title">Sandbox Reproduction</div>
+                    <div class="text-foreground-muted text-[11px] font-sans stage-desc">Confirm failure exit code in isolation</div>
+                    <div class="text-[10px] text-foreground-muted stage-time">--:--:--</div>
+                  </div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="relative flex items-start gap-3 timeline-item" id="stage-3">
+                  <div class="timeline-line"></div>
+                  <div class="h-6 w-6 rounded bg-surface-secondary border border-border flex items-center justify-center shrink-0 text-foreground-muted text-[10px] stage-icon">3</div>
+                  <div class="space-y-0.5">
+                    <div class="text-[12px] font-sans font-medium text-foreground-secondary stage-title">Patch Synthesis</div>
+                    <div class="text-foreground-muted text-[11px] font-sans stage-desc">Generate zero-guard & quotient fix</div>
+                    <div class="text-[10px] text-foreground-muted stage-time">--:--:--</div>
+                  </div>
+                </div>
+
+                <!-- Step 4 -->
+                <div class="relative flex items-start gap-3 timeline-item" id="stage-4">
+                  <div class="timeline-line"></div>
+                  <div class="h-6 w-6 rounded bg-surface-secondary border border-border flex items-center justify-center shrink-0 text-foreground-muted text-[10px] stage-icon">4</div>
+                  <div class="space-y-0.5">
+                    <div class="text-[12px] font-sans font-medium text-foreground-secondary stage-title">Sandbox Test Verification</div>
+                    <div class="text-foreground-muted text-[11px] font-sans stage-desc">5/5 passing with zero regressions</div>
+                    <div class="text-[10px] text-foreground-muted stage-time">--:--:--</div>
+                  </div>
+                </div>
+
+                <!-- Step 5 -->
+                <div class="relative flex items-start gap-3 timeline-item" id="stage-5">
+                  <div class="timeline-line"></div>
+                  <div class="h-6 w-6 rounded bg-surface-secondary border border-border flex items-center justify-center shrink-0 text-foreground-muted text-[10px] stage-icon">5</div>
+                  <div class="space-y-0.5">
+                    <div class="text-[12px] font-sans font-medium text-foreground-secondary stage-title">Governance Approval Gate</div>
+                    <div class="text-foreground-muted text-[11px] font-sans stage-desc">Human sign-off required for git push</div>
+                    <div class="text-[10px] text-foreground-muted stage-time">--:--:--</div>
+                  </div>
+                </div>
+
+                <!-- Step 6 -->
+                <div class="relative flex items-start gap-3 timeline-item" id="stage-6">
+                  <div class="h-6 w-6 rounded bg-surface-secondary border border-border flex items-center justify-center shrink-0 text-foreground-muted text-[10px] stage-icon">6</div>
+                  <div class="space-y-0.5">
+                    <div class="text-[12px] font-sans font-medium text-foreground-secondary stage-title">Qodo Review & PR Dispatch</div>
+                    <div class="text-foreground-muted text-[11px] font-sans stage-desc">Create branch & trigger /agentic_review</div>
+                    <div class="text-[10px] text-foreground-muted stage-time">--:--:--</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Compact Quality Signals (Useful engineering data only) -->
+            <div class="bg-surface border border-border rounded-lg p-4 space-y-3">
+              <div class="text-[12px] font-semibold text-foreground pb-2 border-b border-border">
+                Verification & Safety Signals
+              </div>
+              <div class="grid grid-cols-2 gap-3 text-[12px]">
+                <div class="p-2.5 rounded bg-surface-secondary border border-border">
+                  <div class="text-foreground-muted text-[10px] uppercase font-mono tracking-wider">Sandbox Result</div>
+                  <div class="font-mono text-status-success font-semibold text-[13px] mt-0.5">5/5 Passed</div>
+                </div>
+                <div class="p-2.5 rounded bg-surface-secondary border border-border">
+                  <div class="text-foreground-muted text-[10px] uppercase font-mono tracking-wider">Regressions</div>
+                  <div class="font-mono text-status-success font-semibold text-[13px] mt-0.5">0 Detected</div>
+                </div>
+                <div class="p-2.5 rounded bg-surface-secondary border border-border">
+                  <div class="text-foreground-muted text-[10px] uppercase font-mono tracking-wider">Files Modified</div>
+                  <div class="font-mono text-foreground font-semibold text-[13px] mt-0.5">1 file (7 lines)</div>
+                </div>
+                <div class="p-2.5 rounded bg-surface-secondary border border-border">
+                  <div class="text-foreground-muted text-[10px] uppercase font-mono tracking-wider">Risk Level</div>
+                  <div class="font-mono text-blue-400 font-semibold text-[13px] mt-0.5">Low (Isolated)</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT COLUMN: Terminal, Code Diff & Governance Gate (8 Cols) -->
+          <div class="lg:col-span-8 space-y-6">
+            
+            <!-- Terminal Panel -->
+            <div class="bg-surface border border-border rounded-lg overflow-hidden shadow-sm">
+              <!-- Terminal Header -->
+              <div class="bg-surface-secondary px-4 py-2.5 border-b border-border flex items-center justify-between text-[11px] font-mono text-foreground-muted">
+                <div class="flex items-center gap-3">
+                  <span class="flex items-center gap-1.5 text-foreground-secondary">
+                    <i data-lucide="terminal" class="w-3.5 h-3.5 text-blue-400"></i>
+                    <span>trueforge-sandbox-process</span>
+                  </span>
+                  <span class="text-border">|</span>
+                  <span>Node.js v24.14</span>
+                  <span class="text-border">|</span>
+                  <span id="termStatus">PID: 4829 • Standby</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button onclick="copyLogs()" class="hover:text-foreground transition text-[11px] flex items-center gap-1">
+                    <i data-lucide="copy" class="w-3 h-3"></i> Copy
+                  </button>
+                  <button onclick="clearLogs()" class="hover:text-foreground transition text-[11px] flex items-center gap-1">
+                    <i data-lucide="trash-2" class="w-3 h-3"></i> Clear
+                  </button>
+                </div>
+              </div>
+
+              <!-- Terminal Body -->
+              <div id="terminalStream" class="p-4 font-mono text-[12px] text-foreground-secondary h-64 overflow-y-auto custom-scrollbar bg-background space-y-1 leading-relaxed">
+                <div class="text-foreground-muted">// TrueForge Sandbox Runtime initialized. Ready to ingest CI workflow #4829.</div>
+              </div>
+            </div>
+
+            <!-- HUMAN-IN-THE-LOOP GOVERNANCE CARD -->
+            <div id="governanceSection" class="hidden bg-surface border border-purple-500/40 rounded-lg p-5 space-y-4">
+              <div class="flex items-start justify-between">
+                <div class="flex items-start gap-3">
+                  <div class="h-8 w-8 rounded bg-purple-500/10 border border-purple-500/30 text-purple-400 flex items-center justify-center shrink-0 mt-0.5">
+                    <i data-lucide="shield-alert" class="w-4 h-4"></i>
+                  </div>
+                  <div>
+                    <h3 class="text-[13px] font-semibold text-foreground">Human Review Required — TrueForge Approval Gate</h3>
+                    <p class="text-[12px] text-foreground-muted mt-0.5">
+                      Synthesized patch verified green across all 5 sandbox unit tests. Operator authorization required before dispatching GitHub Pull Request.
+                    </p>
+                  </div>
+                </div>
+                <span class="px-2 py-0.5 text-[10px] font-mono uppercase bg-purple-500/10 border border-purple-500/30 text-purple-300 rounded font-semibold shrink-0">
+                  GOVERNANCE GATE
+                </span>
+              </div>
+
+              <!-- Action Buttons -->
+              <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-border">
+                <button onclick="rejectRemediation()" class="px-3 py-1.5 rounded border border-border text-foreground-secondary hover:text-foreground hover:bg-surface-secondary text-[12px] transition">
+                  Reject & Abort
+                </button>
+                <button onclick="approveRemediation()" class="px-4 py-1.5 rounded bg-status-success text-white font-medium hover:bg-emerald-600 text-[12px] transition flex items-center gap-1.5 shadow-sm">
+                  <i data-lucide="check" class="w-3.5 h-3.5"></i>
+                  <span>Approve & Create Pull Request</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- CODE DIFF VIEWER -->
+            <div class="bg-surface border border-border rounded-lg overflow-hidden">
+              <div class="bg-surface-secondary px-4 py-2.5 border-b border-border flex items-center justify-between text-[12px]">
+                <div class="flex items-center gap-2 font-mono">
+                  <i data-lucide="file-code" class="w-3.5 h-3.5 text-blue-400"></i>
+                  <span class="text-foreground font-medium">src/calculator.js</span>
+                  <span class="text-[10px] text-foreground-muted px-1.5 py-0.2 rounded bg-surface border border-border" id="diffStatusTag">Original</span>
+                </div>
+                <div class="text-[11px] text-foreground-muted font-mono">
+                  <span>-1 line</span> <span class="text-status-success font-semibold">+3 lines</span>
+                </div>
+              </div>
+
+              <!-- Code Content -->
+              <div class="p-0 font-mono text-[12px] overflow-x-auto bg-background">
+                <table class="w-full text-left border-collapse">
+                  <tbody>
+                    <tr class="text-foreground-muted hover:bg-surface-secondary">
+                      <td class="w-10 px-3 py-0.5 select-none text-right text-[11px] text-foreground-muted border-r border-border/50">1</td>
+                      <td class="px-4 py-0.5">class Calculator {</td>
+                    </tr>
+                    <tr class="text-foreground-muted hover:bg-surface-secondary">
+                      <td class="w-10 px-3 py-0.5 select-none text-right text-[11px] text-foreground-muted border-r border-border/50">2</td>
+                      <td class="px-4 py-0.5">  divide(a, b) {</td>
+                    </tr>
+                    
+                    <!-- Buggy Line (Removed) -->
+                    <tr id="diffLineOld" class="bg-status-error-bg text-status-error">
+                      <td class="w-10 px-3 py-0.5 select-none text-right text-[11px] text-status-error/60 border-r border-status-error-border">- 3</td>
+                      <td class="px-4 py-0.5">-    return a * b; // BUG: multiplied instead of divided, no zero check</td>
+                    </tr>
+
+                    <!-- Patched Lines (Added) -->
+                    <tr id="diffLineNew1" class="bg-status-success-bg text-status-success hidden">
+                      <td class="w-10 px-3 py-0.5 select-none text-right text-[11px] text-status-success/60 border-r border-status-success-border">+ 3</td>
+                      <td class="px-4 py-0.5">+    if (b === 0) {</td>
+                    </tr>
+                    <tr id="diffLineNew2" class="bg-status-success-bg text-status-success hidden">
+                      <td class="w-10 px-3 py-0.5 select-none text-right text-[11px] text-status-success/60 border-r border-status-success-border">+ 4</td>
+                      <td class="px-4 py-0.5">+      throw new Error("Cannot divide by zero");</td>
+                    </tr>
+                    <tr id="diffLineNew3" class="bg-status-success-bg text-status-success hidden">
+                      <td class="w-10 px-3 py-0.5 select-none text-right text-[11px] text-status-success/60 border-r border-status-success-border">+ 5</td>
+                      <td class="px-4 py-0.5">+    }</td>
+                    </tr>
+                    <tr id="diffLineNew4" class="bg-status-success-bg text-status-success hidden">
+                      <td class="w-10 px-3 py-0.5 select-none text-right text-[11px] text-status-success/60 border-r border-status-success-border">+ 6</td>
+                      <td class="px-4 py-0.5">+    return a / b;</td>
+                    </tr>
+
+                    <tr class="text-foreground-muted hover:bg-surface-secondary">
+                      <td class="w-10 px-3 py-0.5 select-none text-right text-[11px] text-foreground-muted border-r border-border/50">7</td>
+                      <td class="px-4 py-0.5">  }</td>
+                    </tr>
+                    <tr class="text-foreground-muted hover:bg-surface-secondary">
+                      <td class="w-10 px-3 py-0.5 select-none text-right text-[11px] text-foreground-muted border-r border-border/50">8</td>
+                      <td class="px-4 py-0.5">}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- QODO REVIEW OUTPUT CARD -->
+            <div id="qodoResultCard" class="hidden bg-surface border border-status-success-border rounded-lg p-4 space-y-3">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2 text-[12px] font-medium text-foreground">
+                  <i data-lucide="git-pull-request" class="w-4 h-4 text-status-success"></i>
+                  <span>Pull Request #1 Generated & Reviewed</span>
+                </div>
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-status-success-bg text-status-success border border-status-success-border">MERGED</span>
+              </div>
+              
+              <div class="p-3 rounded bg-surface-secondary border border-border text-[12px] font-mono text-foreground-secondary space-y-1">
+                <div class="text-purple-300">@qodo-code-review: /agentic_review completed</div>
+                <div class="text-status-success">✓ 0 High Vulnerabilities • 100% Sandbox Pass Rate • Zero Regressions</div>
+                <div class="text-foreground-muted text-[11px] pt-1">PR URL: <a href="https://github.com/Priyanshu123-coder/autofix-agent/pull/1" target="_blank" class="text-blue-400 hover:underline">https://github.com/Priyanshu123-coder/autofix-agent/pull/1</a></div>
+              </div>
+            </div>
+
+          </div>
+
         </div>
 
-        <div class="bg-slate-950 p-5 rounded-xl border border-slate-800 space-y-2">
-          <div class="text-xs text-slate-400">Code Quality Grade</div>
-          <div class="text-2xl font-bold text-purple-400 font-mono">A+ (Exemplary)</div>
-          <div class="text-[11px] text-slate-500">Adheres to strict TypeScript patterns</div>
+      </div>
+
+      <!-- ===================================================================== -->
+      <!-- VIEW 2: SUBAGENT MESH TOPOLOGY -->
+      <!-- ===================================================================== -->
+      <div id="view-container-subagents" class="hidden space-y-6 max-w-7xl mx-auto">
+        <div class="bg-surface border border-border rounded-lg p-5 space-y-4">
+          <div>
+            <h2 class="text-base font-semibold text-foreground">TrueForge Subagent Mesh Architecture</h2>
+            <p class="text-[12px] text-foreground-muted mt-0.5">Specialized autonomous workers delegated by the runtime harness loop.</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 font-mono text-[12px]">
+            <div class="p-4 rounded bg-surface-secondary border border-border space-y-2">
+              <div class="text-foreground font-semibold font-sans flex items-center justify-between">
+                <span>Diagnostic Subagent</span>
+                <span class="text-[10px] text-blue-400 bg-blue-500/10 px-1.5 py-0.2 rounded border border-blue-500/20">AST Triage</span>
+              </div>
+              <p class="text-foreground-muted font-sans text-[11px]">Deconstructs raw GitHub Actions stderr, parses stack frames, and isolates failing source lines.</p>
+              <div class="text-[10px] text-foreground-secondary pt-2 border-t border-border">Target: src/agent/subagents.ts</div>
+            </div>
+
+            <div class="p-4 rounded bg-surface-secondary border border-border space-y-2">
+              <div class="text-foreground font-semibold font-sans flex items-center justify-between">
+                <span>Verification Subagent</span>
+                <span class="text-[10px] text-status-success bg-status-success-bg px-1.5 py-0.2 rounded border border-status-success-border">Sandbox Isolation</span>
+              </div>
+              <p class="text-foreground-muted font-sans text-[11px]">Executes test suites inside the isolated TrueForge sandbox and verifies 0 regressions.</p>
+              <div class="text-[10px] text-foreground-secondary pt-2 border-t border-border">Target: src/tools/sandbox_tools.ts</div>
+            </div>
+
+            <div class="p-4 rounded bg-surface-secondary border border-border space-y-2">
+              <div class="text-foreground font-semibold font-sans flex items-center justify-between">
+                <span>Qodo PR Subagent</span>
+                <span class="text-[10px] text-purple-300 bg-purple-500/10 px-1.5 py-0.2 rounded border border-purple-500/20">Review Dispatch</span>
+              </div>
+              <p class="text-foreground-muted font-sans text-[11px]">Formats semantic PR descriptions, branches, and issues automated /agentic_review commands.</p>
+              <div class="text-[10px] text-foreground-secondary pt-2 border-t border-border">Target: src/github/pr_manager.ts</div>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-  </main>
 
+      <!-- ===================================================================== -->
+      <!-- VIEW 3: MCP TOOL REGISTRY -->
+      <!-- ===================================================================== -->
+      <div id="view-container-mcp" class="hidden space-y-6 max-w-7xl mx-auto">
+        <div class="bg-surface border border-border rounded-lg p-5 space-y-4">
+          <div>
+            <h2 class="text-base font-semibold text-foreground">Model Context Protocol (MCP) Tool Registry</h2>
+            <p class="text-[12px] text-foreground-muted mt-0.5">Standardized tool contracts discovered and invoked by the TrueForge agent harness.</p>
+          </div>
+
+          <div class="space-y-3 font-mono text-[12px]">
+            <div class="p-3.5 rounded bg-surface-secondary border border-border space-y-1">
+              <div class="flex items-center justify-between">
+                <span class="text-blue-400 font-semibold">tool: github_fetch_ci_logs</span>
+                <span class="text-[10px] text-foreground-muted">v1.0.0</span>
+              </div>
+              <p class="text-foreground-muted font-sans text-[11px]">Fetches structured CI/CD failure logs for a given GitHub Actions workflow run ID.</p>
+              <div class="text-[10px] text-foreground-secondary">params: { runId: string, repo?: string }</div>
+            </div>
+
+            <div class="p-3.5 rounded bg-surface-secondary border border-border space-y-1">
+              <div class="flex items-center justify-between">
+                <span class="text-status-success font-semibold">tool: sandbox_reproduce_test</span>
+                <span class="text-[10px] text-foreground-muted">v1.0.0</span>
+              </div>
+              <p class="text-foreground-muted font-sans text-[11px]">Executes a test script inside an isolated sandbox container to confirm failures.</p>
+              <div class="text-[10px] text-foreground-secondary">params: { testPath: string, timeoutMs: number }</div>
+            </div>
+
+            <div class="p-3.5 rounded bg-surface-secondary border border-border space-y-1">
+              <div class="flex items-center justify-between">
+                <span class="text-purple-300 font-semibold">tool: governance_request_human_approval</span>
+                <span class="text-[10px] text-foreground-muted">v1.0.0</span>
+              </div>
+              <p class="text-foreground-muted font-sans text-[11px]">Triggers TrueForge human-in-the-loop approval gate before remote git push.</p>
+              <div class="text-[10px] text-foreground-secondary">params: { action: string, diff: string }</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===================================================================== -->
+      <!-- VIEW 4: AUDIT & SESSION REPLAY -->
+      <!-- ===================================================================== -->
+      <div id="view-container-audit" class="hidden space-y-6 max-w-7xl mx-auto">
+        <div class="bg-surface border border-border rounded-lg p-5 space-y-4">
+          <div>
+            <h2 class="text-base font-semibold text-foreground">SQLite Session Persistence Store</h2>
+            <p class="text-[12px] text-foreground-muted mt-0.5">Persistent session snapshots across crashes, reconnects, and operator interruptions.</p>
+          </div>
+
+          <div class="p-4 rounded bg-surface-secondary border border-border font-mono text-[12px] space-y-2">
+            <div class="text-foreground-muted">// .trueforge/sessions.json snapshot</div>
+            <pre class="text-[11px] text-foreground-secondary overflow-x-auto leading-relaxed">{
+  "sessionId": "session-4829",
+  "status": "COMPLETED",
+  "attemptCount": 1,
+  "failureReport": {
+    "runId": "4829",
+    "extractedError": "FAIL test/calculator.test.js: Division operations mismatch",
+    "suspectedFiles": ["src/calculator.js"]
+  },
+  "appliedPatches": [{
+    "filePath": "src/calculator.js",
+    "explanation": "Added zero denominator check and division operator fix"
+  }],
+  "governanceApproval": { "status": "APPROVED", "operator": "Priyanshu Singh" }
+}</pre>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toastContainer" class="fixed bottom-6 right-6 z-50 space-y-2 pointer-events-none"></div>
+
+  <!-- Scripts -->
   <script>
-    let audioEnabled = true;
-    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    lucide.createIcons();
 
-    function playTone(freq = 440, type = 'sine', duration = 0.1) {
-      if (!audioEnabled || !audioCtx) return;
-      try {
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = type;
-        osc.frequency.value = freq;
-        gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + duration);
-      } catch (e) {}
+    function showToast(title, desc, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      const borderColor = type === 'success' ? 'border-status-success-border' : type === 'error' ? 'border-status-error-border' : 'border-border';
+      const textColor = type === 'success' ? 'text-status-success' : type === 'error' ? 'text-status-error' : 'text-foreground';
+      
+      toast.className = `p-3 rounded-lg bg-surface border ${borderColor} shadow-lg text-[12px] font-sans flex items-start gap-2.5 pointer-events-auto transition duration-200 transform translate-y-2 opacity-0`;
+      toast.innerHTML = `
+        <div class="mt-0.5 ${textColor} font-bold">•</div>
+        <div>
+          <div class="font-medium text-foreground">${title}</div>
+          <div class="text-foreground-muted text-[11px]">${desc}</div>
+        </div>
+      `;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      }, 10);
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 200);
+      }, 3500);
     }
 
-    function toggleAudio() {
-      audioEnabled = !audioEnabled;
-      document.getElementById('audioIcon').className = audioEnabled ? 'fa-solid fa-volume-high' : 'fa-solid fa-volume-xmark text-slate-600';
-    }
-
-    function switchTab(tabId) {
-      ['studio', 'subagents', 'mcp', 'qodo'].forEach(t => {
-        document.getElementById(`view-${t}`).classList.add('hidden');
-        document.getElementById(`tabBtn-${t}`).className = 'px-3.5 py-1.5 rounded-lg transition hover:text-slate-200 flex items-center gap-2';
+    function switchView(viewName) {
+      ['incidents', 'subagents', 'mcp', 'audit', 'runs', 'governance'].forEach(v => {
+        const container = document.getElementById(`view-container-${v}`);
+        const nav = document.getElementById(`nav-${v}`);
+        if (container) container.classList.add('hidden');
+        if (nav) nav.className = 'relative w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded text-left transition hover:bg-surface-secondary hover:text-foreground text-foreground-secondary';
       });
-      document.getElementById(`view-${tabId}`).classList.remove('hidden');
-      document.getElementById(`tabBtn-${tabId}`).className = 'px-3.5 py-1.5 rounded-lg transition tab-active flex items-center gap-2';
-      playTone(520, 'sine', 0.05);
+
+      const target = document.getElementById(`view-container-${viewName}`) || document.getElementById('view-container-incidents');
+      const targetNav = document.getElementById(`nav-${viewName}`);
+      if (target) target.classList.remove('hidden');
+      if (targetNav) targetNav.className = 'relative w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded text-left transition nav-active';
     }
 
-    function log(msg, color = 'text-slate-300') {
-      const term = document.getElementById('terminal');
+    function log(msg, color = 'text-foreground-secondary') {
+      const term = document.getElementById('terminalStream');
       const time = new Date().toLocaleTimeString();
-      term.innerHTML += `<div class="${color}"><span class="text-slate-600 font-mono">[${time}]</span> ${msg}</div>`;
+      term.innerHTML += `<div class="${color}"><span class="text-foreground-muted select-none">[${time}]</span> ${msg}</div>`;
       term.scrollTop = term.scrollHeight;
     }
 
-    function setStep(num, status) {
-      const el = document.getElementById(`step-${num}`);
-      const icon = el.querySelector('.step-icon');
-      if (status === 'active') {
-        el.className = 'p-3 rounded-xl border active-pipeline flex items-center gap-3';
-        icon.className = 'h-6 w-6 rounded-lg bg-blue-600 flex items-center justify-center text-xs font-bold text-white font-mono';
-        playTone(600, 'sine', 0.08);
+    function copyLogs() {
+      const text = document.getElementById('terminalStream').innerText;
+      navigator.clipboard.writeText(text);
+      showToast('Copied', 'Terminal logs copied to clipboard.', 'info');
+    }
+
+    function clearLogs() {
+      document.getElementById('terminalStream').innerHTML = '<div class="text-foreground-muted">// Terminal cleared.</div>';
+    }
+
+    function updateStage(num, status) {
+      const stage = document.getElementById(`stage-${num}`);
+      const icon = stage.querySelector('.stage-icon');
+      const title = stage.querySelector('.stage-title');
+      const time = stage.querySelector('.stage-time');
+
+      if (status === 'running') {
+        icon.className = 'h-6 w-6 rounded bg-blue-500/10 border border-blue-500/40 text-blue-400 flex items-center justify-center shrink-0 text-[10px] font-mono animate-pulse';
+        title.className = 'text-[12px] font-sans font-medium text-blue-400';
+        time.innerText = new Date().toLocaleTimeString();
       } else if (status === 'completed') {
-        el.className = 'p-3 rounded-xl border border-emerald-500/40 bg-emerald-950/20 flex items-center gap-3';
-        icon.className = 'h-6 w-6 rounded-lg bg-emerald-600 flex items-center justify-center text-xs font-bold text-white font-mono';
-        icon.innerHTML = '<i class="fa-solid fa-check"></i>';
+        icon.className = 'h-6 w-6 rounded bg-status-success-bg border border-status-success-border text-status-success flex items-center justify-center shrink-0 text-[10px] font-mono';
+        icon.innerHTML = '<i data-lucide="check" class="w-3.5 h-3.5"></i>';
+        title.className = 'text-[12px] font-sans font-medium text-foreground';
+        lucide.createIcons();
       }
     }
 
-    async function startRemediation() {
-      const btn = document.getElementById('startBtn');
+    async function runAutoRemediation() {
+      const btn = document.getElementById('remediateBtn');
       btn.disabled = true;
-      btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> TrueForge Harness Executing...';
-      document.getElementById('spinner').classList.remove('hidden');
-      document.getElementById('terminal').innerHTML = '';
+      btn.innerHTML = '<i data-lucide="loader-2" class="w-3.5 h-3.5 animate-spin"></i><span>Running Harness...</span>';
+      lucide.createIcons();
+      
+      document.getElementById('terminalStream').innerHTML = '';
+      document.getElementById('termStatus').innerText = 'PID: 4829 • Active';
+      document.getElementById('harnessStateLabel').innerText = 'RUNNING';
 
-      log('🚀 [TrueForge Harness] Initialized runtime session ID: session-4829', 'text-blue-400 font-bold');
-      document.getElementById('harnessBadge').innerText = 'ANALYZING';
-      setStep(1, 'active');
+      // Step 1: Log Parsing
+      log('→ [TrueForge Harness] Ingesting GitHub Actions CI Run #4829...', 'text-foreground font-semibold');
+      updateStage(1, 'running');
       await new Promise(r => setTimeout(r, 1000));
+      log('  Found 2 failing assertions in `test/calculator.test.js` (Division operation mismatch)', 'text-status-error');
+      updateStage(1, 'completed');
+      showToast('Logs Analyzed', 'Extracted failure point in calculator.test.js', 'info');
 
-      log('[Step 1] Ingesting CI failure logs: FAIL test/calculator.test.js (Division operations mismatch)', 'text-white');
-      setStep(1, 'completed');
-
-      // Step 2
-      document.getElementById('harnessBadge').innerText = 'REPRODUCING';
-      setStep(2, 'active');
-      log('[Step 2] Spinning up TrueForge isolated sandbox container...', 'text-yellow-400');
-      log('[Sandbox] Executing `node test/calculator.test.js` -> Exit code 1 (Confirmed Failure)', 'text-slate-400');
-      await new Promise(r => setTimeout(r, 1300));
-      setStep(2, 'completed');
-
-      // Step 3
-      document.getElementById('harnessBadge').innerText = 'PATCHING';
-      setStep(3, 'active');
-      log('[Step 3] LLM synthesizing zero-denominator guard and quotient fix in src/calculator.js...', 'text-blue-400');
-      await new Promise(r => setTimeout(r, 1300));
-      document.getElementById('diffNew').classList.remove('hidden');
-      document.getElementById('diffBadge').innerText = 'Patch Synthesized & Applied';
-      document.getElementById('diffBadge').className = 'text-[11px] text-emerald-400 font-mono';
-      setStep(3, 'completed');
-
-      // Step 4
-      document.getElementById('harnessBadge').innerText = 'VERIFYING';
-      setStep(4, 'active');
-      log('[Step 4] Re-running complete test suite in TrueForge Sandbox...', 'text-cyan-400');
+      // Step 2: Sandbox Reproduction
+      updateStage(2, 'running');
+      log('→ [TrueForge Sandbox] Spinning up isolated container (cwd: ./demo-repo)...', 'text-foreground font-semibold');
+      log('  $ node test/calculator.test.js -> Exit code 1 (Confirmed Local Reproduction)', 'text-foreground-muted');
       await new Promise(r => setTimeout(r, 1200));
-      log('✅ [Verification Passed] 5 of 5 unit tests passing in sandbox with 0 regressions!', 'text-emerald-400 font-bold');
-      playTone(880, 'triangle', 0.2);
-      setStep(4, 'completed');
+      updateStage(2, 'completed');
 
-      // Step 5: Human-in-the-loop
-      document.getElementById('harnessBadge').innerText = 'AWAITING_APPROVAL';
-      setStep(5, 'active');
-      log('🔔 [TrueForge Governance Gate] Pausing execution for human operator sign-off...', 'text-purple-400 font-bold');
-      playTone(440, 'square', 0.15);
-      document.getElementById('approvalCard').classList.remove('hidden');
+      // Step 3: Patch Synthesis
+      updateStage(3, 'running');
+      log('→ [Diagnostic Subagent] Synthesizing minimal patch with zero-denominator guard clause...', 'text-foreground font-semibold');
+      await new Promise(r => setTimeout(r, 1200));
+      document.getElementById('diffLineOld').classList.add('opacity-40');
+      ['diffLineNew1', 'diffLineNew2', 'diffLineNew3', 'diffLineNew4'].forEach(id => {
+        document.getElementById(id).classList.remove('hidden');
+      });
+      document.getElementById('diffStatusTag').innerText = 'Patched';
+      document.getElementById('diffStatusTag').className = 'text-[10px] text-status-success px-1.5 py-0.2 rounded bg-status-success-bg border border-status-success-border font-mono';
+      updateStage(3, 'completed');
+      showToast('Patch Synthesized', 'Modified src/calculator.js with safety checks', 'info');
+
+      // Step 4: Verification
+      updateStage(4, 'running');
+      log('→ [Verification Subagent] Executing multi-pass test suite inside TrueForge Sandbox...', 'text-foreground font-semibold');
+      await new Promise(r => setTimeout(r, 1100));
+      log('  ✓ 5 of 5 tests passed with 0 regressions in 14ms', 'text-status-success font-semibold');
+      updateStage(4, 'completed');
+      showToast('Tests Passed', '100% test pass rate in isolated sandbox', 'success');
+
+      // Step 5: Governance Gate
+      updateStage(5, 'running');
+      document.getElementById('harnessStateLabel').innerText = 'AWAITING APPROVAL';
+      log('⚠ [Governance Gate] Halting execution for human sign-off before remote git push', 'text-purple-400 font-semibold');
+      document.getElementById('governanceSection').classList.remove('hidden');
     }
 
-    function grantApproval() {
-      document.getElementById('approvalCard').classList.add('hidden');
-      setStep(5, 'completed');
-      playTone(700, 'sine', 0.1);
-      proceedToPR();
+    function approveRemediation() {
+      document.getElementById('governanceSection').classList.add('hidden');
+      updateStage(5, 'completed');
+      finalizePR();
     }
 
-    function rejectApproval() {
-      document.getElementById('approvalCard').classList.add('hidden');
-      log('❌ [Governance Gate] Operator rejected PR creation.', 'text-rose-400 font-bold');
-      document.getElementById('startBtn').disabled = false;
-      document.getElementById('startBtn').innerHTML = '<i class="fa-solid fa-rotate-right"></i> Restart Repair';
+    function rejectRemediation() {
+      document.getElementById('governanceSection').classList.add('hidden');
+      log('✖ [Governance Gate] Operator rejected remediation plan. Halting.', 'text-status-error font-semibold');
+      document.getElementById('harnessStateLabel').innerText = 'ABORTED';
+      document.getElementById('remediateBtn').disabled = false;
+      document.getElementById('remediateBtn').innerHTML = '<i data-lucide="rotate-cw" class="w-3.5 h-3.5"></i><span>Retry Remediation</span>';
+      lucide.createIcons();
+      showToast('Aborted', 'Remediation rejected by operator', 'error');
     }
 
-    async function proceedToPR() {
-      document.getElementById('harnessBadge').innerText = 'COMPLETED';
-      setStep(6, 'active');
-      log('🎉 [Git Manager] Creating branch fix/autofix-ci-run-4829 and pushing PR...', 'text-emerald-400');
+    async function finalizePR() {
+      updateStage(6, 'running');
+      log('→ [Git Manager] Creating branch `fix/autofix-ci-run-4829` & opening Pull Request...', 'text-foreground font-semibold');
       await new Promise(r => setTimeout(r, 1000));
-      log('🚀 Triggering Qodo Review Commands: /agentic_review, /describe, /improve', 'text-purple-400');
-      setStep(6, 'completed');
-      document.getElementById('prResultCard').classList.remove('hidden');
-      document.getElementById('spinner').classList.add('hidden');
-      document.getElementById('startBtn').disabled = false;
-      document.getElementById('startBtn').innerHTML = '<i class="fa-solid fa-check"></i> Remediation Complete';
-      log('✨ [AutoFix-Agent] Autonomous Remediation Successfully Completed!', 'text-emerald-300 font-bold');
-      playTone(950, 'sine', 0.3);
+      log('→ [Qodo Dispatcher] Triggering automated AI code review (`/agentic_review`)...', 'text-purple-300 font-semibold');
+      updateStage(6, 'completed');
+      
+      document.getElementById('harnessStateLabel').innerText = 'COMPLETED';
+      document.getElementById('qodoResultCard').classList.remove('hidden');
+      document.getElementById('remediateBtn').disabled = false;
+      document.getElementById('remediateBtn').innerHTML = '<i data-lucide="check" class="w-3.5 h-3.5 text-status-success"></i><span>Remediation Complete</span>';
+      lucide.createIcons();
+      showToast('PR Merged', 'Qodo review verified and linked to PR #1', 'success');
+      log('✔ [AutoFix-Agent] Autonomous Remediation Successfully Completed.', 'text-status-success font-semibold');
     }
   </script>
 </body>
