@@ -87,5 +87,5 @@ Under hackathon rules, every substantive feature was committed to a feature bran
 Building AutoFix-Agent demonstrated that **the agent harness is the missing runtime layer for generative AI in software engineering**. By combining TrueForge's runtime execution, sandboxing, and approval gates with Qodo's code review engine, we can build agents that engineers can genuinely trust with root.
 
 * **GitHub Repository:** [https://github.com/Priyanshu123-coder/autofix-agent](https://github.com/Priyanshu123-coder/autofix-agent)
-* **Live Demo Video:** [Watch the 3-minute Walkthrough](https://youtu.be/your-demo-link)
+* **Live Demo Video:** [https://youtu.be/smTV2T7QwJY](https://youtu.be/smTV2T7QwJY?si=dfy6zt1QXiJaTwO5)
 * **Hackathon:** Built for *The Agent Harness Hackathon* by WeMakeDevs & TrueFoundry.

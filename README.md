@@ -154,7 +154,7 @@ autofix-agent/
 
 ## 🎥 Demo Video & Field Report Links
 
-* **3-Minute Demo Video:** [https://youtu.be/your-video-link](https://youtu.be/your-video-link) *(Follows [`docs/DEMO_SCRIPT.md`](docs/DEMO_SCRIPT.md))*
+* **3-Minute Demo Video:** [https://youtu.be/smTV2T7QwJY](https://youtu.be/smTV2T7QwJY?si=dfy6zt1QXiJaTwO5)
 * **Field Report Blog Post:** [https://dev.to/Priyanshu123-coder/building-autofix-agent-trueforge](https://dev.to/Priyanshu123-coder/building-autofix-agent-trueforge) *(Uses [`docs/FIELD_REPORT.md`](docs/FIELD_REPORT.md))*
 * **Submission Checklist:** [`docs/SUBMISSION_CHECKLIST.md`](docs/SUBMISSION_CHECKLIST.md)
 
