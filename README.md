@@ -12,6 +12,14 @@
 
 ---
 
+## 📸 Live Mission Control Dashboard Preview
+
+![AutoFix-Agent Mission Control Dashboard](docs/assets/dashboard_preview.png)
+
+*Figure 1: Real-time 6-state execution loop, live terminal streaming, isolated sandbox verification, and automated Qodo AI code review integration.*
+
+---
+
 ## 🎯 Overview & Problem Statement
 
 Modern software engineering teams lose 20–30% of development cycles manually triaging failed CI/CD pipelines, deciphering terminal stack traces, reproducing bugs locally, and writing regression tests.
